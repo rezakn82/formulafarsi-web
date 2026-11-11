@@ -57,3 +57,37 @@ class Driver(models.Model):
 
     def __str__(self):
         return f"{self.full_name} (#{self.permanent_number})"
+
+
+class DriverStanding(models.Model):
+    season = models.ForeignKey('grandprix_calendar.Season', on_delete=models.CASCADE, related_name='driver_standings', verbose_name="فصل")
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name='standings', verbose_name="راننده")
+    position = models.PositiveSmallIntegerField(verbose_name="رتبه در جدول")
+    points = models.DecimalField(max_digits=6, decimal_places=1, default=0.0, verbose_name="امتیاز")
+    wins = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد بردها")
+
+    class Meta:
+        verbose_name = "رده‌بندی راننده"
+        verbose_name_plural = "جدول رده‌بندی رانندگان"
+        ordering = ['position', '-points']
+        unique_together = ('season', 'driver')
+
+    def __str__(self):
+        return f"{self.position}. {self.driver.full_name} ({self.points} pts) - {self.season.year}"
+
+
+class TeamStanding(models.Model):
+    season = models.ForeignKey('grandprix_calendar.Season', on_delete=models.CASCADE, related_name='team_standings', verbose_name="فصل")
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='standings', verbose_name="تیم")
+    position = models.PositiveSmallIntegerField(verbose_name="رتبه در جدول")
+    points = models.DecimalField(max_digits=6, decimal_places=1, default=0.0, verbose_name="امتیاز")
+    wins = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد بردها")
+
+    class Meta:
+        verbose_name = "رده‌بندی تیمی"
+        verbose_name_plural = "جدول رده‌بندی تیمی (سازندگان)"
+        ordering = ['position', '-points']
+        unique_together = ('season', 'team')
+
+    def __str__(self):
+        return f"{self.position}. {self.team.name} ({self.points} pts) - {self.season.year}"

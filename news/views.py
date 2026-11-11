@@ -2,18 +2,35 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.db.models import Q
 from .models import Article, Category
-from grandprix_calendar.models import Session
+from grandprix_calendar.models import Session, Season
 from django.core.paginator import Paginator
+from racing.models import DriverStanding
 
 def home_view(request):
     now = timezone.now()
+
+    # ۱. نزدیک‌ترین سشن آینده
     next_session = Session.objects.filter(start_time__gte=now).select_related('grand_prix', 'grand_prix__circuit').order_by('start_time').first()
+
+    # ۲. آخرین اخبار منتشر شده
     articles = Article.objects.filter(status='published').select_related('category', 'author')[:6]
+    featured_article = articles[0] if articles else None
+    recent_articles = articles[1:] if len(articles) > 1 else []
+
+    # ۳. دریافت فصل جاری و ۵ راننده برتر
+    current_season = Season.objects.filter(is_current=True).first() or Season.objects.order_by('-year').first()
+    top_drivers = []
+    if current_season:
+        top_drivers = DriverStanding.objects.filter(
+            season=current_season
+        ).select_related('driver', 'driver__team').order_by('position')[:5]
 
     context = {
         'next_session': next_session,
-        'featured_article': articles[0] if articles else None,
-        'recent_articles': articles[1:] if len(articles) > 1 else [],
+        'featured_article': featured_article,
+        'recent_articles': recent_articles,
+        'top_drivers': top_drivers,
+        'season': current_season,
     }
     return render(request, 'news/home.html', context)
 

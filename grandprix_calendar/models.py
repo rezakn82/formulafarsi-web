@@ -1,5 +1,4 @@
 from django.db import models
-from racing.models import Circuit
 
 class Season(models.Model):
     year = models.PositiveSmallIntegerField(unique=True, verbose_name="سال فصل (مثلا 2026)")
@@ -17,7 +16,7 @@ class GrandPrix(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name='grands_prix', verbose_name="فصل")
     round_number = models.PositiveSmallIntegerField(verbose_name="شماره راند")
     name = models.CharField(max_length=150, verbose_name="نام گرندپری (مثلا گرندپری بحرین)")
-    circuit = models.ForeignKey(Circuit, on_delete=models.CASCADE, related_name='grands_prix', verbose_name="پیست")
+    circuit = models.ForeignKey('racing.Circuit', on_delete=models.CASCADE, related_name='grands_prix', verbose_name="پیست")
     start_date = models.DateField(verbose_name="تاریخ شروع آخرهفته")
     end_date = models.DateField(verbose_name="تاریخ پایان (روز مسابقه)")
 

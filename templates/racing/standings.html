@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}جدول رده‌بندی مسابقات فرمول یک فصل {{ season.year }} | پایگاه خبری{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-5xl mx-auto">
+
+    <!-- سربرگ -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">CHAMPIONSHIP STANDINGS</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-black text-white">جدول رده‌بندی و امتیازات فصل {{ season.year }}</h1>
+        </div>
+
+        <!-- دکمه‌های جابجایی تب‌ها -->
+        <div class="inline-flex p-1 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold">
+            <button id="tab-drivers-btn" onclick="showTab('drivers')" class="px-5 py-2 rounded-lg bg-red-600 text-white transition">
+                رده‌بندی رانندگان
+            </button>
+            <button id="tab-teams-btn" onclick="showTab('teams')" class="px-5 py-2 rounded-lg text-zinc-400 hover:text-white transition">
+                رده‌بندی تیمی (سازندگان)
+            </button>
+        </div>
+    </div>
+
+    <!-- ۱. جدول رده‌بندی رانندگان -->
+    <div id="tab-drivers" class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-sm">
+                <thead class="bg-zinc-950/80 text-zinc-400 text-xs border-b border-zinc-800">
+                    <tr>
+                        <th class="py-3.5 px-4 text-center w-14">رتبه</th>
+                        <th class="py-3.5 px-4">راننده</th>
+                        <th class="py-3.5 px-4">تیم</th>
+                        <th class="py-3.5 px-4 text-center">بردها</th>
+                        <th class="py-3.5 px-4 text-left font-mono">امتیاز کل</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-800/80 font-medium">
+                    {% for item in driver_standings %}
+                    <tr class="hover:bg-zinc-800/40 transition">
+                        <td class="py-4 px-4 text-center font-bold font-mono {% if item.position <= 3 %}text-red-500 text-base{% else %}text-zinc-400{% endif %}">
+                            {{ item.position }}
+                        </td>
+                        <td class="py-4 px-4">
+                            <a href="{% url 'racing:driver_detail' item.driver.code %}" class="flex items-center gap-3 group">
+                                <span class="w-1.5 h-6 rounded-full" style="background-color: {{ item.driver.team.color_code|default:'#52525b' }};"></span>
+                                {% if item.driver.portrait %}
+                                <img src="{{ item.driver.portrait.url }}" alt="{{ item.driver.full_name }}" class="w-8 h-8 rounded-full object-cover bg-zinc-950 border border-zinc-700">
+                                {% endif %}
+                                <span class="text-white font-bold group-hover:text-red-400 transition">{{ item.driver.full_name }}</span>
+                                <span class="text-[10px] text-zinc-500 font-mono">#{{ item.driver.permanent_number }}</span>
+                            </a>
+                        </td>
+                        <td class="py-4 px-4 text-xs text-zinc-300">
+                            {{ item.driver.team.name|default:"آزاد" }}
+                        </td>
+                        <td class="py-4 px-4 text-center font-mono text-zinc-400">
+                            {{ item.wins }}
+                        </td>
+                        <td class="py-4 px-4 text-left font-mono font-black text-white text-base">
+                            {{ item.points }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-zinc-500">اطلاعات رده‌بندی برای این فصل ثبت نشده است.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ۲. جدول رده‌بندی تیمی (سازندگان) -->
+    <div id="tab-teams" class="hidden bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-sm">
+                <thead class="bg-zinc-950/80 text-zinc-400 text-xs border-b border-zinc-800">
+                    <tr>
+                        <th class="py-3.5 px-4 text-center w-14">رتبه</th>
+                        <th class="py-3.5 px-4">تیم</th>
+                        <th class="py-3.5 px-4">پیشرانه</th>
+                        <th class="py-3.5 px-4 text-center">بردها</th>
+                        <th class="py-3.5 px-4 text-left font-mono">امتیاز کل</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-800/80 font-medium">
+                    {% for item in team_standings %}
+                    <tr class="hover:bg-zinc-800/40 transition">
+                        <td class="py-4 px-4 text-center font-bold font-mono {% if item.position <= 3 %}text-red-500 text-base{% else %}text-zinc-400{% endif %}">
+                            {{ item.position }}
+                        </td>
+                        <td class="py-4 px-4">
+                            <a href="{% url 'racing:team_detail' item.team.pk %}" class="flex items-center gap-3 group">
+                                <span class="w-1.5 h-6 rounded-full" style="background-color: {{ item.team.color_code|default:'#52525b' }};"></span>
+                                {% if item.team.logo %}
+                                <img src="{{ item.team.logo.url }}" alt="{{ item.team.name }}" class="h-6 max-w-[40px] object-contain">
+                                {% endif %}
+                                <span class="text-white font-bold group-hover:text-red-400 transition">{{ item.team.name }}</span>
+                            </a>
+                        </td>
+                        <td class="py-4 px-4 text-xs text-zinc-300">
+                            {{ item.team.power_unit }}
+                        </td>
+                        <td class="py-4 px-4 text-center font-mono text-zinc-400">
+                            {{ item.wins }}
+                        </td>
+                        <td class="py-4 px-4 text-left font-mono font-black text-white text-base">
+                            {{ item.points }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-zinc-500">اطلاعات رده‌بندی تیمی برای این فصل ثبت نشده است.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showTab(type) {
+        const driversTab = document.getElementById('tab-drivers');
+        const teamsTab = document.getElementById('tab-teams');
+        const driversBtn = document.getElementById('tab-drivers-btn');
+        const teamsBtn = document.getElementById('tab-teams-btn');
+
+        if (type === 'drivers') {
+            driversTab.classList.remove('hidden');
+            teamsTab.classList.add('hidden');
+            driversBtn.className = "px-5 py-2 rounded-lg bg-red-600 text-white transition";
+            teamsBtn.className = "px-5 py-2 rounded-lg text-zinc-400 hover:text-white transition";
+        } else {
+            teamsTab.classList.remove('hidden');
+            driversTab.classList.add('hidden');
+            teamsBtn.className = "px-5 py-2 rounded-lg bg-red-600 text-white transition";
+            driversBtn.className = "px-5 py-2 rounded-lg text-zinc-400 hover:text-white transition";
+        }
+    }
+</script>
+{% endblock %}

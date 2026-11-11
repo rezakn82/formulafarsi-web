@@ -108,7 +108,64 @@
     </div>
     {% endif %}
 </div>
+{% if top_drivers %}
+<section class="mt-12 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-4 mb-6">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">STANDINGS LEADERS</span>
+            </div>
+            <h3 class="text-xl font-black text-white">۵ راننده برتر جدول مسابقات (فصل {{ season.year }})</h3>
+        </div>
+        <a href="{% url 'racing:standings' %}" class="text-xs font-bold text-red-500 hover:text-red-400 transition flex items-center gap-1">
+            <span>مشاهده جدول کامل</span>
+            <span class="text-sm">←</span>
+        </a>
+    </div>
 
+    <!-- گرید ۵ راننده برتر -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {% for item in top_drivers %}
+        <a href="{% url 'racing:driver_detail' item.driver.code %}" 
+           class="bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 rounded-xl p-4 flex flex-col justify-between transition group relative overflow-hidden">
+            
+            <!-- نوار رنگ تیم -->
+            <div class="h-1 w-full absolute top-0 right-0 left-0" style="background-color: {{ item.driver.team.color_code|default:'#52525b' }};"></div>
+
+            <div>
+                <!-- رتبه و شماره راننده -->
+                <div class="flex items-center justify-between mb-2 pt-1">
+                    <span class="text-lg font-black font-mono {% if item.position == 1 %}text-amber-400{% elif item.position == 2 %}text-zinc-300{% elif item.position == 3 %}text-amber-600{% else %}text-zinc-500{% endif %}">
+                        P{{ item.position }}
+                    </span>
+                    <span class="text-[11px] text-zinc-500 font-mono">#{{ item.driver.permanent_number }}</span>
+                </div>
+
+                <!-- پرتره راننده -->
+                <div class="aspect-square bg-zinc-900/80 rounded-lg overflow-hidden flex items-end justify-center mb-3 border border-zinc-800/80">
+                    {% if item.driver.portrait %}
+                    <img src="{{ item.driver.portrait.url }}" alt="{{ item.driver.full_name }}" class="h-full object-contain group-hover:scale-105 transition duration-300">
+                    {% else %}
+                    <span class="text-2xl font-mono text-zinc-700 font-black mb-4">{{ item.driver.code }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- نام راننده و تیم -->
+                <h4 class="text-sm font-bold text-white group-hover:text-red-400 transition truncate">{{ item.driver.full_name }}</h4>
+                <p class="text-[11px] text-zinc-400 truncate mt-0.5">{{ item.driver.team.name|default:"آزاد" }}</p>
+            </div>
+
+            <!-- امتیاز کل -->
+            <div class="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs">
+                <span class="text-zinc-500 text-[11px]">امتیاز</span>
+                <span class="font-mono font-black text-white text-sm">{{ item.points }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}

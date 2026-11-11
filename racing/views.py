@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Driver, Team
+from .models import Driver, Team, DriverStanding, TeamStanding
+from grandprix_calendar.models import Season
 
 # ۱. لیست تمام رانندگان
 def drivers_list_view(request):
@@ -52,3 +53,27 @@ def team_detail_view(request, pk):
         'related_articles': related_articles,
     }
     return render(request, 'racing/team_detail.html', context)
+
+
+def standings_view(request):
+    # دریافت فصل جاری یا آخرین فصل موجود
+    current_season = Season.objects.filter(is_current=True).first() or Season.objects.order_by('-year').first()
+    
+    driver_standings = []
+    team_standings = []
+
+    if current_season:
+        driver_standings = DriverStanding.objects.filter(
+            season=current_season
+        ).select_related('driver', 'driver__team').order_by('position')
+
+        team_standings = TeamStanding.objects.filter(
+            season=current_season
+        ).select_related('team').order_by('position')
+
+    context = {
+        'season': current_season,
+        'driver_standings': driver_standings,
+        'team_standings': team_standings,
+    }
+    return render(request, 'racing/standings.html', context)
