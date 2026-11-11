@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}خانه - اخبار فرمول یک{% endblock %}
+
+{% block content %}
+
+<!-- ویجت گرندپری و سشن بعدی -->
+{% if next_session %}
+<div class="mb-10 bg-gradient-to-r from-zinc-900 via-zinc-900 to-red-950/40 border border-zinc-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+    <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black italic pointer-events-none">F1</div>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">رویداد در پیشِ رو</span>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-white">{{ next_session.grand_prix.name }}</h2>
+            <p class="text-zinc-400 text-sm mt-1">
+                {{ next_session.get_session_type_display }} • پیست {{ next_session.grand_prix.circuit.name }} ({{ next_session.grand_prix.circuit.country }})
+            </p>
+        </div>
+
+        <!-- تایمر معکوس -->
+        <div class="flex items-center gap-3 text-center" id="countdown-box" data-time="{{ next_session.start_time|date:'c' }}">
+            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
+                <span id="days" class="text-xl font-black text-white">00</span>
+                <span class="block text-[10px] text-zinc-400">روز</span>
+            </div>
+            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
+                <span id="hours" class="text-xl font-black text-white">00</span>
+                <span class="block text-[10px] text-zinc-400">ساعت</span>
+            </div>
+            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
+                <span id="minutes" class="text-xl font-black text-white">00</span>
+                <span class="block text-[10px] text-zinc-400">دقیقه</span>
+            </div>
+            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
+                <span id="seconds" class="text-xl font-black text-red-500">00</span>
+                <span class="block text-[10px] text-zinc-400">ثانیه</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- بخش اخبار -->
+<div class="space-y-6">
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+            <span class="w-1.5 h-6 bg-red-600 rounded-sm"></span>
+            آخرین اخبار
+        </h3>
+    </div>
+
+    {% if featured_article %}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- خبر ویژه (بزرگ) -->
+        <div class="lg:col-span-7 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-700 transition group flex flex-col justify-between">
+            <div>
+                {% if featured_article.featured_image %}
+                <div class="aspect-video w-full overflow-hidden bg-zinc-800">
+                    <img src="{{ featured_article.featured_image.url }}" alt="{{ featured_article.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                </div>
+                {% endif %}
+                <div class="p-5">
+                    {% if featured_article.category %}
+                    <span class="text-xs bg-red-600/10 text-red-400 border border-red-500/20 px-2.5 py-1 rounded-md">{{ featured_article.category.title }}</span>
+                    {% endif %}
+                    <h4 class="text-xl font-bold text-white mt-3 group-hover:text-red-400 transition">{{ featured_article.title }}</h4>
+                    <p class="text-zinc-400 text-sm mt-2 line-clamp-2 leading-relaxed">{{ featured_article.lead }}</p>
+                </div>
+            </div>
+            <div class="px-5 pb-5 text-xs text-zinc-500 flex justify-between items-center border-t border-zinc-800/60 pt-3">
+                <span>توسط {{ featured_article.author.get_full_name|default:featured_article.author.username }}</span>
+                <span>{{ featured_article.created_at|date:"Y/m/d" }}</span>
+            </div>
+        </div>
+
+        <!-- اخبار کناری -->
+        <div class="lg:col-span-5 flex flex-col gap-4">
+            {% for item in recent_articles %}
+            <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 flex gap-4 hover:border-zinc-700 transition group">
+                {% if item.featured_image %}
+                <img src="{{ item.featured_image.url }}" alt="{{ item.title }}" class="w-24 h-24 object-cover rounded-lg flex-shrink-0 bg-zinc-800">
+                {% endif %}
+                <div class="flex flex-col justify-between">
+                    <div>
+                        {% if item.category %}
+                        <span class="text-[11px] text-zinc-400">{{ item.category.title }}</span>
+                        {% endif %}
+                        <h5 class="text-sm font-semibold text-white group-hover:text-red-400 transition line-clamp-2 mt-1">{{ item.title }}</h5>
+                    </div>
+                    <span class="text-[11px] text-zinc-500 mt-2">{{ item.created_at|date:"Y/m/d" }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-zinc-500 text-sm">خبر دیگری وجود ندارد.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-16 bg-zinc-900/40 rounded-2xl border border-zinc-800 text-zinc-500">
+        <p>هنوز هیچ خبری در سایت منتشر نشده است.</p>
+        <p class="text-xs mt-1">از طریق پنل ادمین اولین خبر خود را اضافه کنید.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- اسکریپت شمارش معکوس دقیق تایمر مسابقه -->
+<script>
+    const box = document.getElementById('countdown-box');
+    if (box) {
+        const targetDate = new Date(box.getAttribute('data-time')).getTime();
+        const updateCountdown = () => {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                box.innerHTML = "<span class='text-red-500 font-bold text-sm'>جلسه در حال برگزاری یا پایان یافته است</span>";
+                return;
+            }
+
+            document.getElementById('days').innerText = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, '0');
+            document.getElementById('hours').innerText = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+            document.getElementById('minutes').innerText = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+            document.getElementById('seconds').innerText = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
+        };
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    }
+</script>
+{% endblock %}
