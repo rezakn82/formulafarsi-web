@@ -12,15 +12,27 @@
         body { font-family: 'Vazirmatn', sans-serif; }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col justify-between">
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col justify-between antialiased">
 
-    <!-- هدر و نوبار -->
-    <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-50">
+    <!-- هدر سایت -->
+    <header class="border-b border-zinc-800 bg-zinc-900/90 backdrop-blur sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-8">
-                <a href="/" class="text-2xl font-black italic tracking-wider text-red-600 flex items-center gap-1">
-                    <span>FormulaFarsi</span>
+            
+            <div class="flex items-center gap-6">
+                <!-- دکمه همبرگری مخصوص موبایل -->
+                <button id="mobile-menu-btn" type="button" aria-label="منوی سایت" class="md:hidden p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition focus:outline-none">
+                    <svg class="w-6 h-6 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- لوگوی سایت -->
+                <a href="{% url 'news:home' %}" class="text-2xl font-black italic tracking-wider text-red-600 flex items-center gap-1 select-none">
+                    <span>PITSTOP</span>
+                    <span class="text-white text-xs px-2 py-0.5 rounded bg-red-600 not-italic uppercase font-bold tracking-normal">News</span>
                 </a>
+
+                <!-- منوی دسکتاپ -->
                 <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-300">
                     <a href="{% url 'news:home' %}" class="hover:text-red-500 transition">صفحه اصلی</a>
                     <a href="{% url 'news:articles_list' %}" class="hover:text-red-500 transition">اخبار</a>
@@ -30,13 +42,71 @@
                     <a href="{% url 'racing:teams_list' %}" class="hover:text-red-500 transition">تیم‌ها</a>
                 </nav>
             </div>
-            <div>
-                <a href="/admin" target="_blank" class="text-xs bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-full transition text-zinc-300">ورود به پنل</a>
+
+            <!-- لینک ورود ادمین در هدر -->
+            <div class="flex items-center gap-3">
+                <a href="/admin" target="_blank" class="text-xs bg-zinc-800 hover:bg-zinc-700 px-3.5 py-1.5 rounded-full transition text-zinc-300 border border-zinc-700/60 font-medium">
+                    ورود به پنل
+                </a>
             </div>
         </div>
     </header>
 
-    <!-- محتوای متغیر هر صفحه -->
+    <!-- لایه تاریک پس‌زمینه در موبایل (Backdrop) -->
+    <div id="drawer-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden transition-opacity duration-300 opacity-0 md:hidden"></div>
+
+    <!-- منوی کشویی جانبی (Mobile Drawer) -->
+    <div id="mobile-drawer" class="fixed top-0 right-0 bottom-0 w-72 bg-zinc-900 border-l border-zinc-800 z-50 flex flex-col justify-between transition-transform duration-300 ease-out translate-x-full md:hidden shadow-2xl">
+        <div class="p-5">
+            <!-- سربرگ منوی موبایل همراه با دکمه بستن -->
+            <div class="flex items-center justify-between pb-4 border-b border-zinc-800">
+                <span class="text-lg font-black italic text-red-600">PITSTOP</span>
+                <button id="close-drawer-btn" type="button" aria-label="بستن منو" class="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition">
+                    <svg class="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- آیتم‌های منو در موبایل -->
+            <nav class="flex flex-col gap-2 mt-5 text-sm font-semibold">
+                <a href="{% url 'news:home' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
+                    <span>🏠</span>
+                    <span>صفحه اصلی</span>
+                </a>
+                <a href="{% url 'news:articles_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
+                    <span>📰</span>
+                    <span>اخبار و مقالات</span>
+                </a>
+                <a href="{% url 'racing:standings' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
+                    <span>🏆</span>
+                    <span>جدول رده‌بندی</span>
+                </a>
+                <a href="{% url 'grandprix_calendar:calendar_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
+                    <span>📅</span>
+                    <span>تقویم مسابقات</span>
+                </a>
+                <a href="{% url 'racing:drivers_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
+                    <span>🏎️</span>
+                    <span>رانندگان</span>
+                </a>
+                <a href="{% url 'racing:teams_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
+                    <span>🏁</span>
+                    <span>تیم‌ها</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- پاورقی کشو -->
+        <div class="p-5 border-t border-zinc-800 text-xs text-zinc-500">
+            <a href="/admin" target="_blank" class="block text-center w-full py-2 bg-zinc-800 text-zinc-300 hover:text-white rounded-lg transition mb-3">
+                ورود به پنل ادمین
+            </a>
+            <p class="text-center">پایگاه خبری موتوراسپرت و فرمول یک</p>
+        </div>
+    </div>
+
+    <!-- بدنه اصلی صفحات -->
     <main class="flex-grow max-w-7xl mx-auto px-4 py-8 w-full">
         {% block content %}
         {% endblock %}
@@ -44,8 +114,38 @@
 
     <!-- فوتر -->
     <footer class="border-t border-zinc-900 bg-zinc-950 py-6 text-center text-xs text-zinc-500">
-        <p>© 2026 پلتفرم خبری فرمول یک. کلیه حقوق برای کانال فرمولافارسی محفوظ است.</p>
+        <p>© 2026 پلتفرم خبری فرمول یک. کلیه حقوق برای کانال محفوظ است.</p>
     </footer>
+
+    <!-- کنترلر جاوااسکریپت برای منوی موبایل -->
+    <script>
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const closeDrawerBtn = document.getElementById('close-drawer-btn');
+        const mobileDrawer = document.getElementById('mobile-drawer');
+        const drawerBackdrop = document.getElementById('drawer-backdrop');
+
+        function openDrawer() {
+            drawerBackdrop.classList.remove('hidden');
+            setTimeout(() => {
+                drawerBackdrop.classList.remove('opacity-0');
+                mobileDrawer.classList.remove('translate-x-full');
+            }, 10);
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeDrawer() {
+            mobileDrawer.classList.add('translate-x-full');
+            drawerBackdrop.classList.add('opacity-0');
+            setTimeout(() => {
+                drawerBackdrop.classList.add('hidden');
+            }, 300);
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', openDrawer);
+        closeDrawerBtn.addEventListener('click', closeDrawer);
+        drawerBackdrop.addEventListener('click', closeDrawer);
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>
