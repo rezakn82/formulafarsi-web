@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('news.urls')),
     path('calendar/', include('grandprix_calendar.urls')),
+    path('racing/', include('racing.urls')),
 ]
 
 if settings.DEBUG:
