@@ -1,9 +1,11 @@
-from django.db import models
 from django.contrib.auth.models import User
-from racing.models import Driver, Team
-from grandprix_calendar.models import GrandPrix
+from django.db import models
 from django.urls import reverse
 from django_ckeditor_5.fields import CKEditor5Field
+
+from apps.grandprix_calendar.models import GrandPrix
+from apps.racing.models import Driver, Team
+
 
 class Category(models.Model):
     title = models.CharField(max_length=80, verbose_name="عنوان دسته‌بندی")

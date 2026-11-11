@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,9 +40,9 @@ INSTALLED_APPS = [
 
     # Added By me
     'django.contrib.sitemaps',
-    'news.apps.NewsConfig',
-    'racing.apps.RacingConfig',
-    'grandprix_calendar.apps.GrandprixCalendarConfig',
+    'apps.news.apps.NewsConfig',
+    'apps.racing.apps.RacingConfig',
+    'apps.grandprix_calendar.apps.GrandprixCalendarConfig',
     'django_ckeditor_5',
 ]
 

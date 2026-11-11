@@ -1,7 +1,10 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
+
+from apps.racing.models import Driver, Team
+
 from .models import Article
-from racing.models import Driver, Team
+
 
 # ۱. سایت‌مپ اخبار منتشر شده (با اولویت بالا)
 class ArticleSitemap(Sitemap):

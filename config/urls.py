@@ -14,12 +14,17 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
+from apps.news.sitemaps import (
+    ArticleSitemap,
+    DriverSitemap,
+    StaticViewSitemap,
+    TeamSitemap,
+)
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
-from news.sitemaps import ArticleSitemap, StaticViewSitemap, DriverSitemap, TeamSitemap
+from django.urls import include, path
 
 sitemaps = {
     'articles': ArticleSitemap,
@@ -30,9 +35,9 @@ sitemaps = {
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('news.urls')),
-    path('calendar/', include('grandprix_calendar.urls')),
-    path('racing/', include('racing.urls')),
+    path('', include('apps.news.urls')),
+    path('calendar/', include('apps.grandprix_calendar.urls')),
+    path('racing/', include('apps.racing.urls')),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
 
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),

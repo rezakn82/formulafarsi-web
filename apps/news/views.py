@@ -1,10 +1,13 @@
-from django.shortcuts import render, get_object_or_404
-from django.utils import timezone
-from django.db.models import Q
-from .models import Article, Category
-from grandprix_calendar.models import Session, Season
 from django.core.paginator import Paginator
-from racing.models import DriverStanding
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
+
+from apps.grandprix_calendar.models import Season, Session
+from apps.racing.models import DriverStanding
+
+from .models import Article, Category
+
 
 def home_view(request):
     now = timezone.now()

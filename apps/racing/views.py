@@ -1,6 +1,9 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Driver, Team, DriverStanding, TeamStanding
-from grandprix_calendar.models import Season
+from django.shortcuts import get_object_or_404, render
+
+from apps.grandprix_calendar.models import Season
+
+from .models import Driver, DriverStanding, Team, TeamStanding
+
 
 # ۱. لیست تمام رانندگان
 def drivers_list_view(request):
