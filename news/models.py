@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from racing.models import Driver, Team
 from grandprix_calendar.models import GrandPrix
+from django.urls import reverse
 
 class Category(models.Model):
     title = models.CharField(max_length=80, verbose_name="عنوان دسته‌بندی")
@@ -44,3 +45,6 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('news:article_detail', kwargs={'slug': self.slug})
