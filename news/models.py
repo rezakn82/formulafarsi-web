@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from racing.models import Driver, Team
 from grandprix_calendar.models import GrandPrix
 from django.urls import reverse
+from django_ckeditor_5.fields import CKEditor5Field
 
 class Category(models.Model):
     title = models.CharField(max_length=80, verbose_name="عنوان دسته‌بندی")
@@ -27,7 +28,7 @@ class Article(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, related_name='articles', verbose_name="نویسنده")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='articles', verbose_name="دسته‌بندی")
     lead = models.TextField(max_length=500, verbose_name="لید / خلاصه خبر")
-    body = models.TextField(verbose_name="متن کامل خبر")
+    body = CKEditor5Field(verbose_name="متن کامل خبر", config_name='news_editor')
     featured_image = models.ImageField(upload_to='news/%Y/%m/', verbose_name="تصویر شاخص")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft', verbose_name="وضعیت انتشار")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")

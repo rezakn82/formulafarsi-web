@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}خانه - اخبار فرمول یک{% endblock %}
+{% block title %}خانه - رسانه فرمولافارسی{% endblock %}
 
 {% block content %}
 
@@ -12,7 +12,7 @@
         <div>
             <div class="flex items-center gap-2 mb-2">
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
-                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">رویداد در پیشِ رو</span>
+                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">گرندپری پیشِ رو</span>
             </div>
             <h2 class="text-2xl md:text-3xl font-extrabold text-white">{{ next_session.grand_prix.name }}</h2>
             <p class="text-zinc-400 text-sm mt-1">
@@ -21,22 +21,22 @@
         </div>
 
         <!-- تایمر معکوس -->
-        <div class="flex items-center gap-3 text-center" id="countdown-box" data-time="{{ next_session.start_time|date:'c' }}">
+        <div class="flex items-center gap-3 text-center" id="countdown-box" data-time="{{ next_session.start_time|date:'c' }}"> 
             <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                <span id="days" class="text-xl font-black text-white">00</span>
-                <span class="block text-[10px] text-zinc-400">روز</span>
-            </div>
-            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                <span id="hours" class="text-xl font-black text-white">00</span>
-                <span class="block text-[10px] text-zinc-400">ساعت</span>
+                <span id="seconds" class="text-xl font-black text-red-500">00</span>
+                <span class="block text-[10px] text-zinc-400">ثانیه</span>
             </div>
             <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
                 <span id="minutes" class="text-xl font-black text-white">00</span>
                 <span class="block text-[10px] text-zinc-400">دقیقه</span>
             </div>
             <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                <span id="seconds" class="text-xl font-black text-red-500">00</span>
-                <span class="block text-[10px] text-zinc-400">ثانیه</span>
+                <span id="hours" class="text-xl font-black text-white">00</span>
+                <span class="block text-[10px] text-zinc-400">ساعت</span>
+            </div>
+            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
+                <span id="days" class="text-xl font-black text-white">00</span>
+                <span class="block text-[10px] text-zinc-400">روز</span>
             </div>
         </div>
     </div>

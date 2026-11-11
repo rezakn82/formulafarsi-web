@@ -51,9 +51,21 @@
     </div>
 
     <!-- متن اصلی خبر -->
-    <div class="text-zinc-200 text-base leading-loose space-y-4 font-normal">
-        {{ article.body|linebreaks }}
+    <div class="article-content text-zinc-200 text-base leading-loose space-y-4 font-normal">
+    {{ article.body|safe }}
     </div>
+
+    <style>
+        /* استایل‌های خودکار برای متون فرمت‌بندی شده ادیتور */
+        .article-content h2 { font-size: 1.5rem; font-weight: 800; color: #ffffff; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .article-content h3 { font-size: 1.25rem; font-weight: 700; color: #ffffff; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .article-content p { margin-bottom: 1rem; line-height: 2; }
+        .article-content a { color: #ef4444; text-decoration: underline; }
+        .article-content img { border-radius: 0.75rem; margin: 1.5rem auto; max-width: 100%; border: 1px solid #27272a; }
+        .article-content blockquote { border-right: 4px solid #ef4444; padding-right: 1rem; margin: 1.5rem 0; color: #a1a1aa; font-style: italic; }
+        .article-content ul { list-style-type: disc; padding-right: 1.5rem; margin: 1rem 0; }
+        .article-content ol { list-style-type: decimal; padding-right: 1.5rem; margin: 1rem 0; }
+    </style>
 
     <!-- تگ‌های هوشمند (راننده، تیم، گرندپری) -->
     {% if article.related_drivers.all or article.related_teams.all or article.related_grand_prix %}

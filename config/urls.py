@@ -24,6 +24,7 @@ urlpatterns = [
     path('', include('news.urls')),
     path('calendar/', include('grandprix_calendar.urls')),
     path('racing/', include('racing.urls')),
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
 ]
 
 if settings.DEBUG:
