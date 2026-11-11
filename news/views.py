@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.db.models import Q
-from .models import Article
+from .models import Article, Category
 from grandprix_calendar.models import Session
+from django.core.paginator import Paginator
 
 def home_view(request):
     now = timezone.now()
@@ -39,3 +40,39 @@ def article_detail_view(request, slug):
         'related_articles': related_articles,
     }
     return render(request, 'news/article_detail.html', context)
+
+
+def articles_list_view(request):
+    articles_queryset = Article.objects.filter(status='published').select_related('category', 'author')
+
+    # ۱. فیلتر بر اساس دسته‌بندی (در صورت انتخاب کاربر)
+    category_slug = request.GET.get('category')
+    selected_category = None
+    if category_slug:
+        articles_queryset = articles_queryset.filter(category__slug=category_slug)
+        selected_category = category_slug
+
+    # ۲. موتور جستجو در عنوان، لید و متن
+    search_query = request.GET.get('q')
+    if search_query:
+        articles_queryset = articles_queryset.filter(
+            Q(title__icontains=search_query) |
+            Q(lead__icontains=search_query) |
+            Q(body__icontains=search_query)
+        ).distinct()
+
+    # ۳. صفحه‌بندی (هر صفحه ۹ خبر)
+    paginator = Paginator(articles_queryset, 9)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # دریافت تمام دسته‌بندی‌ها برای نمایش در نوار بالای آرشیو
+    categories = Category.objects.all()
+
+    context = {
+        'page_obj': page_obj,
+        'categories': categories,
+        'selected_category': selected_category,
+        'search_query': search_query,
+    }
+    return render(request, 'news/articles_list.html', context)
