@@ -84,7 +84,7 @@
             <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
             درباره تیم
         </h3>
-        <p class="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">{{ team.bio }}</p>
+        <div class="text-zinc-300 text-sm leading-relaxed space-y-3">{{ team.bio|safe }}</div>
     </div>
     {% endif %}
 

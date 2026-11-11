@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sitemaps",
     # Third-party apps
-    "django_ckeditor_5",
+    "django_summernote",
     # Project apps
     "apps.news.apps.NewsConfig",
     "apps.racing.apps.RacingConfig",
@@ -136,83 +136,146 @@ EMAIL_BACKEND = env.str(
 )
 
 # ==============================================================================
-# CKEDITOR 5
+# SUMMERNOTE RICH-TEXT EDITOR
 # ==============================================================================
-CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+# Required so django-summernote's admin iframe loads on the same origin.
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
-CKEDITOR_5_CONFIGS = {
-    "default": {
+SUMMERNOTE_THEME = "bs4"
+
+SUMMERNOTE_CONFIG = {
+    "iframe": True,
+    "summernote": {
+        "airMode": False,
+        "width": "100%",
+        "height": "480",
+        "lang": "fa-IR",
+        "styleTags": ["p", "blockquote", "pre", "h2", "h3", "h4"],
+        "fontNames": ["Vazirmatn", "Tahoma", "Arial", "Courier New"],
+        "fontNamesIgnoreCheck": ["Vazirmatn"],
+        "fontSizes": ["12", "14", "16", "18", "20", "24", "28", "32"],
         "toolbar": [
-            "heading",
-            "|",
-            "bold",
-            "italic",
-            "link",
-            "bulletedList",
-            "numberedList",
-            "blockQuote",
-            "imageUpload",
+            ["style", ["style"]],
+            [
+                "font",
+                [
+                    "bold",
+                    "italic",
+                    "underline",
+                    "strikethrough",
+                    "superscript",
+                    "subscript",
+                    "clear",
+                ],
+            ],
+            ["fontname", ["fontname"]],
+            ["fontsize", ["fontsize"]],
+            ["color", ["color"]],
+            ["para", ["ul", "ol", "paragraph", "height"]],
+            ["table", ["table"]],
+            ["insert", ["link", "picture", "video", "hr"]],
+            ["view", ["fullscreen", "codeview", "undo", "redo", "help"]],
         ],
-    },
-    "news_editor": {
-        "toolbar": {
-            "items": [
-                "heading",
-                "|",
-                "bold",
-                "italic",
-                "underline",
-                "strikethrough",
-                "|",
-                "bulletedList",
-                "numberedList",
-                "|",
-                "alignment",
-                "|",
-                "link",
-                "insertImage",
-                "blockQuote",
-                "insertTable",
-                "mediaEmbed",
-                "|",
-                "undo",
-                "redo",
+        "popover": {
+            "image": [
+                ["image", ["resizeFull", "resizeHalf", "resizeQuarter", "resizeNone"]],
+                ["float", ["floatLeft", "floatRight", "floatNone"]],
+                ["remove", ["removeMedia"]],
             ],
-        },
-        "language": "fa",  # پشتیبانی کامل از تایپ راست‌چین و منوی فارسی
-        "image": {
-            "toolbar": [
-                "imageTextAlternative",
-                "|",
-                "imageStyle:alignLeft",
-                "imageStyle:alignRight",
-                "imageStyle:alignCenter",
-                "imageStyle:side",
+            "link": [
+                ["link", ["linkDialogShow", "unlink"]],
             ],
-        },
-        "table": {
-            "contentToolbar": ["tableColumn", "tableRow", "mergeTableCells"],
-        },
-        "heading": {
-            "options": [
-                {
-                    "model": "paragraph",
-                    "title": "پاراگراف",
-                    "class": "ck-heading_paragraph",
-                },
-                {
-                    "model": "heading2",
-                    "view": "h2",
-                    "title": "تیتر ۲",
-                    "class": "ck-heading_heading2",
-                },
-                {
-                    "model": "heading3",
-                    "view": "h3",
-                    "title": "تیتر ۳",
-                    "class": "ck-heading_heading3",
-                },
+            "table": [
+                ["add", ["addRowDown", "addRowUp", "addColLeft", "addColRight"]],
+                ["delete", ["deleteRow", "deleteCol", "deleteTable"]],
             ],
         },
     },
+    "css": (
+        "https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css",
+    ),
+    "attachment_upload_to": "news/attachments/%Y/%m/",
+    "attachment_filesize_limit": 10 * 1024 * 1024,  # 10 MB max per uploaded media file
+    "attachment_require_authentication": True,
+}
+
+# Allowed HTML tags and attributes when sanitizing SummernoteTextField via bleach
+ALLOWED_TAGS = [
+    "a",
+    "abbr",
+    "acronym",
+    "b",
+    "blockquote",
+    "br",
+    "caption",
+    "cite",
+    "code",
+    "col",
+    "colgroup",
+    "dd",
+    "del",
+    "details",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "figcaption",
+    "figure",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "hr",
+    "i",
+    "iframe",
+    "img",
+    "ins",
+    "kbd",
+    "li",
+    "mark",
+    "ol",
+    "p",
+    "pre",
+    "q",
+    "s",
+    "samp",
+    "small",
+    "span",
+    "strike",
+    "strong",
+    "sub",
+    "summary",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "tr",
+    "u",
+    "ul",
+    "var",
+    "video",
+    "source",
+]
+
+ATTRIBUTES = {
+    "*": ["class", "style", "dir", "lang", "id", "title", "align"],
+    "a": ["href", "target", "rel", "title"],
+    "img": ["src", "alt", "width", "height", "loading"],
+    "iframe": [
+        "src",
+        "width",
+        "height",
+        "frameborder",
+        "allow",
+        "allowfullscreen",
+    ],
+    "video": ["src", "controls", "width", "height", "poster", "preload"],
+    "source": ["src", "type"],
+    "td": ["colspan", "rowspan", "width", "height"],
+    "th": ["colspan", "rowspan", "width", "height", "scope"],
 }

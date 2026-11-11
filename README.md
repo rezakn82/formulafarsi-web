@@ -2,14 +2,14 @@
 
 **FormulaFarsi** is a Persian-language Formula 1 and motorsport news, race calendar, and championship standings web application built with **Django 5.2 LTS** and managed with **`uv`**.
 
-It provides an editorial publishing workflow with RTL CKEditor 5 support, smart relational tagging between news articles, drivers, teams, and Grands Prix, live season countdown/session tracking, championship standings tables, and dynamic SEO sitemaps.
+It provides an editorial publishing workflow with RTL Summernote rich-text support, smart relational tagging between news articles, drivers, teams, and Grands Prix, live season countdown/session tracking, championship standings tables, and dynamic SEO sitemaps.
 
 ---
 
 ## ✨ Key Features
 
 - **📰 Motorsport Editorial & News (`apps.news`)**
-  - Rich-text Persian (RTL) article authoring powered by **CKEditor 5** (`django-ckeditor-5`) with inline image uploads, headings, tables, and media embeds.
+  - Rich-text Persian (RTL) article authoring powered by **Summernote** (`django-summernote`) with inline image/attachment uploads, Vazirmatn typography, headings, tables, and media embeds.
   - Smart relational tagging: link articles to specific **Drivers**, **Teams**, and **Grands Prix** so related news automatically surfaces on driver/team profiles and article detail pages.
   - Full news archive with category filtering, keyword search (across title, lead, and body), and pagination.
   - Dynamic XML sitemaps (`/sitemap.xml`) covering published articles, drivers, teams, and static routes.
@@ -37,7 +37,7 @@ It provides an editorial publishing workflow with RTL CKEditor 5 support, smart 
 formulafarsi-web/
 ├── apps/
 │   ├── grandprix_calendar/   # Seasons, Grands Prix, and weekend race sessions
-│   ├── news/                 # Articles, categories, CKEditor 5 integration, and sitemaps
+│   ├── news/                 # Articles, categories, Summernote integration, and sitemaps
 │   └── racing/               # Circuits, Teams, Drivers, and Championship Standings
 ├── config/
 │   ├── env.py                # Strict django-environ + python-dotenv loader
@@ -71,7 +71,7 @@ formulafarsi-web/
 | **Package Manager** | [uv](https://docs.astral.sh/uv/) |
 | **Web Framework** | Django 5.2 LTS (`>5.2,<5.3`) |
 | **Environment Config** | `django-environ` + `python-dotenv` |
-| **Rich Text Editor** | `django-ckeditor-5` (configured for Persian RTL) |
+| **Rich Text Editor** | `django-summernote` (configured for Persian RTL & Vazirmatn) |
 | **Image Processing** | `Pillow` (WebP, AVIF, PNG, JPEG) |
 | **Database** | SQLite 3 (local default) / PostgreSQL ready via `DATABASE_URL` |
 | **Frontend Styling** | Django Templates + Tailwind CSS + Vazirmatn Font |
