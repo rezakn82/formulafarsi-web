@@ -5,6 +5,7 @@ Environment variables are loaded from ``env/.env`` (and optional ``env/.env.<DJA
 via ``config.env`` using ``django-environ`` and ``python-dotenv``.
 """
 
+from importlib.util import find_spec
 from pathlib import Path
 
 from config.env import Env, load_env_files
@@ -57,6 +58,15 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Enable development-only extensions and debug toolbar when installed
+if DEBUG:
+    if find_spec("django_extensions") is not None:
+        INSTALLED_APPS.append("django_extensions")
+    if find_spec("debug_toolbar") is not None:
+        INSTALLED_APPS.append("debug_toolbar")
+        MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+        INTERNAL_IPS = env.list("INTERNAL_IPS", default=["127.0.0.1", "localhost"])
 
 ROOT_URLCONF = "config.urls"
 
