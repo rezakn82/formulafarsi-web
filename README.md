@@ -45,6 +45,11 @@ formulafarsi-web/
 │   ├── urls.py               # Root URL routing and sitemap registration
 │   ├── asgi.py               # ASGI entrypoint
 │   └── wsgi.py               # WSGI entrypoint
+├── docs/
+│   ├── README.md             # Documentation index and maintenance rules
+│   ├── architecture.md       # System architecture, ER diagram, and request flow
+│   ├── TODO.md               # Known bugs, technical debt, and feature roadmap
+│   └── modules/              # Per-app detailed documentation (news, racing, grandprix_calendar)
 ├── env/
 │   ├── .env.example          # Template for environment variables
 │   └── .env                  # Local environment configuration (git-ignored)
@@ -121,7 +126,11 @@ uv run python manage.py createsuperuser
 
 ### 5. Run the Development Server
 ```bash
+# Standard Django development server
 uv run python manage.py runserver
+
+# Or enhanced Werkzeug server via django-extensions
+uv run python manage.py runserver_plus
 ```
 - **Web Application:** [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 - **Admin Panel:** [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
@@ -147,17 +156,34 @@ uv run python manage.py runserver
 
 ---
 
+## 📚 Documentation
+
+Detailed technical documentation lives in [`docs/`](docs/README.md):
+
+- **[Documentation Index & Rules](docs/README.md)** — How documentation is structured and kept in sync with the codebase.
+- **[System Architecture](docs/architecture.md)** — Tech stack, dependency graph, ER diagram, and request lifecycle.
+- **[TODOs & Roadmap](docs/TODO.md)** — Known bugs, missing test coverage, and planned features.
+- **Module Guides:**
+  - [`apps.news`](docs/modules/news.md) — Editorial articles, categories, Summernote integration, and XML sitemaps.
+  - [`apps.racing`](docs/modules/racing.md) — Circuits, teams, drivers, and championship standings.
+  - [`apps.grandprix_calendar`](docs/modules/grandprix_calendar.md) — Seasons, Grands Prix, and weekend session schedules.
+
+---
+
 ## 🧪 Running Checks & Tests
 
 ```bash
 # Run Django system checks
 uv run python manage.py check
 
-# Run test suite across all apps
-uv run python manage.py test
+# Run test suite with pytest (parallel execution supported via pytest-xdist)
+uv run pytest -n auto
 
-# Lint and format Python files with Ruff (excluding migrations)
-uvx ruff check apps/ config/ --exclude "*/migrations/*"
+# Run test suite with coverage report
+uv run pytest --cov=apps
+
+# Run Django's built-in test runner
+uv run python manage.py test
 ```
 
 ---
