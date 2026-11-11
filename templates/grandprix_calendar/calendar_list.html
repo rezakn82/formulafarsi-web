@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}تقویم مسابقات فرمول یک فصل {{ season.year }} | پایگاه خبری{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- سربرگ تقویم -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">برنامه زمانی رسمی</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-black text-white">تقویم مسابقات فصل {{ season.year }}</h1>
+        </div>
+        <div class="text-xs text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-2 rounded-lg">
+            زمان‌ها بر اساس ساعت رسمی ایران محاسبه شده‌اند.
+        </div>
+    </div>
+
+    <!-- گرید کارت‌های گرندپری -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for gp in grands_prix %}
+        <a href="{% url 'grandprix_calendar:grandprix_detail' gp.round_number %}" 
+           class="bg-zinc-900/70 border border-zinc-800/80 hover:border-zinc-700 rounded-2xl p-5 transition flex flex-col justify-between group relative overflow-hidden">
+            
+            <!-- وضعیت گرندپری (برگزار شده / جاری / آینده) -->
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-mono font-bold text-zinc-400 bg-zinc-800 px-2.5 py-1 rounded-md">
+                    راند {{ gp.round_number }}
+                </span>
+
+                {% if today > gp.end_date %}
+                <span class="text-[11px] text-zinc-400 bg-zinc-800/60 px-2 py-0.5 rounded">پایان یافته</span>
+                {% elif today >= gp.start_date and today <= gp.end_date %}
+                <span class="text-[11px] text-red-400 bg-red-950/60 border border-red-800/50 px-2 py-0.5 rounded flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                    در حال برگزاری
+                </span>
+                {% else %}
+                <span class="text-[11px] text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded">در پیشِ رو</span>
+                {% endif %}
+            </div>
+
+            <!-- نام و اطلاعات گرندپری -->
+            <div class="space-y-1 mb-6">
+                <h3 class="text-lg font-bold text-white group-hover:text-red-400 transition">{{ gp.name }}</h3>
+                <p class="text-xs text-zinc-400 flex items-center gap-1.5">
+                    <span>📍</span> {{ gp.circuit.name }} - {{ gp.circuit.country }}
+                </p>
+            </div>
+
+            <!-- تاریخ آخر هفته -->
+            <div class="border-t border-zinc-800/80 pt-3 flex items-center justify-between text-xs text-zinc-400">
+                <span>{{ gp.start_date|date:"j M" }} تا {{ gp.end_date|date:"j M Y" }}</span>
+                <span class="text-red-500 font-semibold group-hover:translate-x-[-4px] transition-transform">مشاهده برنامه ←</span>
+            </div>
+        </a>
+        {% empty %}
+        <div class="col-span-full text-center py-12 bg-zinc-900/40 rounded-xl border border-zinc-800 text-zinc-500">
+            هنوز مسابقه‌ای برای این فصل ثبت نشده است.
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

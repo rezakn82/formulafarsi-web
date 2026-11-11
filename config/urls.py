@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('news.urls')),
+    path('calendar/', include('grandprix_calendar.urls')),
 ]
 
 if settings.DEBUG:

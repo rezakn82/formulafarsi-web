@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ grand_prix.name }} | برنامه زمانی و پیست{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-5xl mx-auto">
+
+    <!-- دکمه بازگشت -->
+    <a href="{% url 'grandprix_calendar:calendar_list' %}" class="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition">
+        ← بازگشت به تقویم فصل
+    </a>
+
+    <!-- بنر معرفی گرندپری -->
+    <div class="bg-gradient-to-r from-zinc-900 to-zinc-900/60 border border-zinc-800 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+            <span class="text-xs font-bold text-red-500 bg-red-950/40 border border-red-900/50 px-2.5 py-1 rounded-md">راند {{ grand_prix.round_number }} - فصل {{ grand_prix.season.year }}</span>
+            <h1 class="text-2xl md:text-4xl font-black text-white mt-3">{{ grand_prix.name }}</h1>
+            <p class="text-sm text-zinc-400 mt-2">برگزارکننده: پیست {{ grand_prix.circuit.name }}، {{ grand_prix.circuit.country }}</p>
+        </div>
+        <div class="text-left md:text-right bg-zinc-950/50 border border-zinc-800/80 p-4 rounded-xl">
+            <span class="text-[11px] text-zinc-500 block">تاریخ آخر هفته:</span>
+            <span class="text-sm font-bold text-zinc-200 mt-1 block">{{ grand_prix.start_date|date:"j F" }} - {{ grand_prix.end_date|date:"j F Y" }}</span>
+        </div>
+    </div>
+
+    <!-- جدول زمان‌بندی جلسات (سشن‌ها) -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
+            برنامه زمانی تمام جلسات (به وقت ایران)
+        </h2>
+
+        <div class="divide-y divide-zinc-800">
+            {% for session in sessions %}
+            <div class="py-3.5 flex items-center justify-between text-sm">
+                <div class="flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full {% if session.start_time < now %}bg-zinc-600{% else %}bg-red-500{% endif %}"></span>
+                    <span class="font-bold text-zinc-200">{{ session.get_session_type_display }}</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs md:text-sm font-mono text-zinc-400">
+                    <span>{{ session.start_time|date:"l j F" }}</span>
+                    <span class="bg-zinc-800 text-white px-2.5 py-1 rounded-md font-bold">{{ session.start_time|date:"H:i" }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-zinc-500 text-xs py-3">هنوز زمان‌بندی سشن‌ها وارد نشده است.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- مشخصات و نقشه پیست -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
+            اطلاعات پیست: {{ grand_prix.circuit.name }}
+        </h2>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
+                <span class="text-xs text-zinc-500 block">طول پیست</span>
+                <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.circuit.length_km }} km</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
+                <span class="text-xs text-zinc-500 block">تعداد پیچ‌ها</span>
+                <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.circuit.corners }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center col-span-2">
+                <span class="text-xs text-zinc-500 block">رکورد پیست</span>
+                <span class="text-sm font-bold text-red-400 mt-1 block font-mono">{{ grand_prix.circuit.lap_record|default:"ثبت نشده" }}</span>
+            </div>
+        </div>
+
+        {% if grand_prix.circuit.image %}
+        <div class="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-4 flex items-center justify-center">
+            <img src="{{ grand_prix.circuit.image.url }}" alt="{{ grand_prix.circuit.name }}" class="max-h-96 object-contain">
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
