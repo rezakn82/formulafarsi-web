@@ -18,6 +18,15 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.sitemaps.views import sitemap
+from news.sitemaps import ArticleSitemap, StaticViewSitemap, DriverSitemap, TeamSitemap
+
+sitemaps = {
+    'articles': ArticleSitemap,
+    'static': StaticViewSitemap,
+    'drivers': DriverSitemap,
+    'teams': TeamSitemap,
+}
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +34,8 @@ urlpatterns = [
     path('calendar/', include('grandprix_calendar.urls')),
     path('racing/', include('racing.urls')),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
+
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 ]
 
 if settings.DEBUG:

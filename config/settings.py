@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Added By me
+    'django.contrib.sitemaps',
     'news.apps.NewsConfig',
     'racing.apps.RacingConfig',
     'grandprix_calendar.apps.GrandprixCalendarConfig',

@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 class Circuit(models.Model):
     name = models.CharField(max_length=150, verbose_name="نام پیست")
@@ -35,6 +36,9 @@ class Team(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse('racing:team_detail', kwargs={'pk': self.pk})
+
 
 class Driver(models.Model):
     first_name = models.CharField(max_length=50, verbose_name="نام")
@@ -57,6 +61,9 @@ class Driver(models.Model):
 
     def __str__(self):
         return f"{self.full_name} (#{self.permanent_number})"
+
+    def get_absolute_url(self):
+        return reverse('racing:driver_detail', kwargs={'code': self.code})
 
 
 class DriverStanding(models.Model):
