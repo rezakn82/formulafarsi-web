@@ -9,10 +9,6 @@ This document tracks verified issues in the current codebase, missing test cover
 
 ## 🐛 Bugs & Codebase Edge Cases to Fix
 
-- [ ] **Single Active Season Enforcement (`apps.grandprix_calendar`):**
-  - `Season.is_current` is a plain `BooleanField`. Multiple `Season` rows can accidentally be marked `is_current=True` in Admin.
-  - **Fix:** Override `Season.save()` (or add a `UniqueConstraint(fields=['is_current'], condition=Q(is_current=True))`) to automatically unset `is_current` on other seasons when a season is marked current, and improve `SeasonAdmin` with `list_display = ('year', 'is_current')` and `list_editable = ('is_current',)`.
-
 - [ ] **Clickable Relational Tags on Article Detail (`apps.news`):**
   - In [`templates/news/article_detail.html`](../templates/news/article_detail.html#L75-L91), tagged `related_drivers`, `related_teams`, and `related_grand_prix` are rendered as non-clickable `<span>` elements.
   - **Fix:** Convert them into `<a>` links pointing to `{% url 'racing:driver_detail' driver.code %}`, `{% url 'racing:team_detail' team.pk %}`, and `{% url 'grandprix_calendar:grandprix_detail' article.related_grand_prix.round_number %}`.

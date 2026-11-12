@@ -45,3 +45,4 @@ class SessionAdmin(admin.ModelAdmin):
 class SeasonAdmin(admin.ModelAdmin):
     list_display = ('year', 'is_current')
     list_editable = ('is_current',)
+    ordering = ('-year',)

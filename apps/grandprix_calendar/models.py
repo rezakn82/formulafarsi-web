@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import models, transaction
+from django.db.models import Q
 
 class Season(models.Model):
     year = models.PositiveSmallIntegerField(unique=True, verbose_name="سال فصل (مثلا 2026)")
@@ -7,6 +8,21 @@ class Season(models.Model):
     class Meta:
         verbose_name = "فصل"
         verbose_name_plural = "فصل‌ها"
+        ordering = ['-year']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['is_current'],
+                condition=Q(is_current=True),
+                name='unique_current_season',
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if self.is_current:
+                # غیرفعال کردن سایر فصل‌های جاری قبل از ذخیره این فصل
+                Season.objects.filter(is_current=True).exclude(pk=self.pk).update(is_current=False)
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return str(self.year)

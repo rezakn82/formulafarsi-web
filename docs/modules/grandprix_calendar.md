@@ -25,6 +25,8 @@ Represents a Formula 1 championship year (e.g., `2026`).
 | `year` | `PositiveSmallIntegerField` | `unique=True` | Championship year (`سال فصل`) |
 | `is_current` | `BooleanField` | Default `False` | Marks the currently active season (`فصل جاری است؟`) |
 
+- **Constraints & Behavior:** `ordering = ['-year']`, conditional `UniqueConstraint(fields=['is_current'], condition=Q(is_current=True), name='unique_current_season')`, and `Season.save()` atomically unsets `is_current` on all other seasons when saved with `is_current=True`.
+
 ### `GrandPrix`
 Represents a single race weekend round within a `Season`.
 
