@@ -1,0 +1,32 @@
+[project]
+name = "formulafarsi-web"
+version = "0.1.0"
+description = "Formula Farsi Web Application"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "django>5.2,<5.3",
+    "django-environ>=0.14.0",
+    "django-summernote>=0.8.20.0",
+    "pillow>=13.0.0",
+    "python-dotenv>=1.2.4",
+]
+
+[dependency-groups]
+dev = [
+    "django-debug-toolbar>=8.0.0",
+    "django-extensions>=4.1",
+    "factory-boy>=3.3.3",
+    "faker>=40.54.0",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "pytest-django>=4.14.0",
+    "pytest-xdist>=3.8.0",
+    "watchfiles>=1.3.0",
+    "werkzeug>=3.1.9",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "*_test.py", "tests.py"]
+addopts = "--reuse-db"

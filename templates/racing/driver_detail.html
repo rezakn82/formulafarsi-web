@@ -58,7 +58,7 @@
             <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
             بیوگرافی و سوابق
         </h3>
-        <p class="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">{{ driver.bio }}</p>
+        <div class="text-zinc-300 text-sm leading-relaxed space-y-3">{{ driver.bio|safe }}</div>
     </div>
     {% endif %}
 
