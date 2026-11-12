@@ -36,7 +36,7 @@ class Session(models.Model):
         ('fp2', 'تمرین دوم (FP2)'),
         ('fp3', 'تمرین سوم (FP3)'),
         ('qualifying', 'تعیین خط (Qualifying)'),
-        ('sprint_shootout', 'شوت‌اوت اسپرینت'),
+        ('sprint_qualifying', 'تعیین خط اسپرینت'),
         ('sprint', 'مسابقه اسپرینت'),
         ('race', 'مسابقه اصلی (Main Race)'),
     ]
@@ -52,3 +52,72 @@ class Session(models.Model):
 
     def __str__(self):
         return f"{self.grand_prix.name} - {self.get_session_type_display()}"
+
+
+class SessionResult(models.Model):
+    STATUS_CHOICES = [
+        ('finished', 'پایان یافته (Finished)'),
+        ('dnf', 'عدم پایان (DNF)'),
+        ('dns', 'عدم شروع (DNS)'),
+        ('dsq', 'رد صلاحیت (DSQ)'),
+    ]
+
+    session = models.ForeignKey(
+        Session,
+        on_delete=models.CASCADE,
+        related_name='results',
+        verbose_name="جلسه مسابقه",
+    )
+    driver = models.ForeignKey(
+        'racing.Driver',
+        on_delete=models.CASCADE,
+        related_name='session_results',
+        verbose_name="راننده",
+    )
+    team = models.ForeignKey(
+        'racing.Team',
+        on_delete=models.CASCADE,
+        related_name='session_results',
+        verbose_name="تیم (در این گرندپری)",
+    )
+    position = models.PositiveSmallIntegerField(verbose_name="رتبه")
+    status = models.CharField(
+        max_length=15,
+        choices=STATUS_CHOICES,
+        default='finished',
+        verbose_name="وضعیت",
+    )
+    grid_position = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="خط شروع (Grid)",
+    )
+    laps = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="تعداد دورها",
+    )
+    time_or_gap = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="مثال: 1:31:44.742 برای نفر اول یا +2.451s برای نفرات بعدی",
+        verbose_name="زمان / فاصله",
+    )
+    q1_time = models.CharField(max_length=20, blank=True, verbose_name="زمان Q1 / SQ1")
+    q2_time = models.CharField(max_length=20, blank=True, verbose_name="زمان Q2 / SQ2")
+    q3_time = models.CharField(max_length=20, blank=True, verbose_name="زمان Q3 / SQ3")
+    points = models.DecimalField(
+        max_digits=4,
+        decimal_places=1,
+        default=0.0,
+        verbose_name="امتیاز",
+    )
+    fastest_lap = models.BooleanField(default=False, verbose_name="سریع‌ترین دور؟")
+
+    class Meta:
+        verbose_name = "نتیجه جلسه"
+        verbose_name_plural = "نتایج جلسات"
+        ordering = ['position']
+        unique_together = ('session', 'driver')
+
+    def __str__(self):
+        return f"P{self.position} - {self.driver} ({self.session})"

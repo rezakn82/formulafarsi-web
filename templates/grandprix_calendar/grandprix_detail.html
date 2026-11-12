@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ grand_prix.name }} | برنامه زمانی و پیست{% endblock %}
+{% block title %}{{ grand_prix.name }} | برنامه زمانی، پیست و نتایج{% endblock %}
 
 {% block content %}
 <div class="space-y-8 max-w-5xl mx-auto">
 
     <!-- دکمه بازگشت -->
-    <a href="{% url 'grandprix_calendar:calendar_list' %}" class="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition">
-        ← بازگشت به تقویم فصل
+    <a href="{% url 'grandprix_calendar:calendar_list' %}?season={{ grand_prix.season.year }}" class="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition">
+        ← بازگشت به تقویم فصل {{ grand_prix.season.year }}
     </a>
 
     <!-- بنر معرفی گرندپری -->
@@ -22,6 +22,119 @@
             <span class="text-sm font-bold text-zinc-200 mt-1 block">{{ grand_prix.start_date|date:"j F" }} - {{ grand_prix.end_date|date:"j F Y" }}</span>
         </div>
     </div>
+
+    <!-- آرشیو نتایج جلسات برگزار شده (تمرینی، تعیین خط، اسپرینت و مسابقه) -->
+    {% if sessions_with_results %}
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-6 shadow-xl">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
+                نتایج جلسات برگزار شده
+            </h2>
+
+            <!-- تب‌های انتخاب سشن -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold">
+                {% for session in sessions_with_results %}
+                <button type="button"
+                        id="session-btn-{{ session.id }}"
+                        onclick="showSessionResult('{{ session.id }}')"
+                        class="session-tab-btn px-4 py-2 rounded-xl border whitespace-nowrap transition {% if forloop.last %}bg-red-600 border-red-600 text-white{% else %}bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white{% endif %}">
+                    {{ session.get_session_type_display }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- جداول نتایج هر سشن (به صورت پیش‌فرض آخرین سشن برگزار شده مثل مسابقه اصلی فعال است) -->
+        {% for session in sessions_with_results %}
+        <div id="session-panel-{{ session.id }}" class="session-result-panel {% if not forloop.last %}hidden{% endif %}">
+            <div class="overflow-x-auto rounded-xl border border-zinc-800">
+                <table class="w-full text-right text-sm">
+                    <thead class="bg-zinc-950/90 text-zinc-400 text-xs border-b border-zinc-800">
+                        <tr>
+                            <th class="py-3.5 px-4 text-center w-14">رتبه</th>
+                            <th class="py-3.5 px-4">راننده</th>
+                            <th class="py-3.5 px-4">تیم</th>
+
+                            {% if session.session_type == 'qualifying' or session.session_type == 'sprint_shootout' %}
+                                <th class="py-3.5 px-4 text-center font-mono">Q1 / SQ1</th>
+                                <th class="py-3.5 px-4 text-center font-mono">Q2 / SQ2</th>
+                                <th class="py-3.5 px-4 text-center font-mono">Q3 / SQ3</th>
+                            {% else %}
+                                {% if session.session_type == 'race' or session.session_type == 'sprint' %}
+                                <th class="py-3.5 px-4 text-center">خط شروع</th>
+                                {% endif %}
+                                <th class="py-3.5 px-4 text-center">دورها</th>
+                                <th class="py-3.5 px-4 text-left font-mono">زمان / فاصله</th>
+                            {% endif %}
+
+                            {% if session.session_type == 'race' or session.session_type == 'sprint' %}
+                                <th class="py-3.5 px-4 text-left font-mono">امتیاز</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-800/80 font-medium">
+                        {% for res in session.results.all %}
+                        <tr class="hover:bg-zinc-800/40 transition">
+                            <!-- ستون رتبه یا وضعیت DNF/DSQ -->
+                            <td class="py-3.5 px-4 text-center font-mono font-bold">
+                                {% if res.status == 'finished' %}
+                                    <span class="{% if res.position == 1 %}text-amber-400 text-base{% elif res.position == 2 %}text-zinc-300 text-base{% elif res.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
+                                        {{ res.position }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-[11px] bg-red-950/60 text-red-400 border border-red-800/50 px-2 py-0.5 rounded uppercase">
+                                        {{ res.status }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- ستون راننده -->
+                            <td class="py-3.5 px-4">
+                                <a href="{% url 'racing:driver_detail' res.driver.code %}" class="flex items-center gap-2.5 group">
+                                    <span class="w-1.5 h-5 rounded-full" style="background-color: {{ res.team.color_code|default:'#52525b' }};"></span>
+                                    <span class="text-white font-bold group-hover:text-red-400 transition">{{ res.driver.full_name }}</span>
+                                    <span class="text-[10px] text-zinc-500 font-mono">#{{ res.driver.permanent_number }}</span>
+                                    {% if res.fastest_lap %}
+                                    <span title="سریع‌ترین دور" class="text-[10px] bg-purple-950/80 text-purple-300 border border-purple-700/60 px-1.5 py-0.5 rounded font-mono">FL</span>
+                                    {% endif %}
+                                </a>
+                            </td>
+
+                            <!-- ستون تیم -->
+                            <td class="py-3.5 px-4 text-xs text-zinc-300">
+                                <a href="{% url 'racing:team_detail' res.team.pk %}" class="hover:text-white transition">
+                                    {{ res.team.name }}
+                                </a>
+                            </td>
+
+                            <!-- ستون‌های متغیر بر اساس نوع جلسه -->
+                            {% if session.session_type == 'qualifying' or session.session_type == 'sprint_shootout' %}
+                                <td class="py-3.5 px-4 text-center font-mono text-xs text-zinc-300">{{ res.q1_time|default:"-" }}</td>
+                                <td class="py-3.5 px-4 text-center font-mono text-xs text-zinc-300">{{ res.q2_time|default:"-" }}</td>
+                                <td class="py-3.5 px-4 text-center font-mono text-xs font-bold text-emerald-400">{{ res.q3_time|default:"-" }}</td>
+                            {% else %}
+                                {% if session.session_type == 'race' or session.session_type == 'sprint' %}
+                                <td class="py-3.5 px-4 text-center font-mono text-xs text-zinc-400">{{ res.grid_position|default:"-" }}</td>
+                                {% endif %}
+                                <td class="py-3.5 px-4 text-center font-mono text-xs text-zinc-400">{{ res.laps }}</td>
+                                <td class="py-3.5 px-4 text-left font-mono text-xs text-zinc-200" dir="ltr">{{ res.time_or_gap|default:"-" }}</td>
+                            {% endif %}
+
+                            {% if session.session_type == 'race' or session.session_type == 'sprint' %}
+                                <td class="py-3.5 px-4 text-left font-mono font-black text-white">
+                                    {% if res.points > 0 %}+{{ res.points }}{% else %}0{% endif %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- جدول زمان‌بندی جلسات (سشن‌ها) -->
     <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
@@ -78,4 +191,24 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showSessionResult(sessionId) {
+        document.querySelectorAll('.session-result-panel').forEach(panel => {
+            panel.classList.add('hidden');
+        });
+        document.querySelectorAll('.session-tab-btn').forEach(btn => {
+            btn.className = "session-tab-btn px-4 py-2 rounded-xl border whitespace-nowrap transition bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white";
+        });
+
+        const activePanel = document.getElementById('session-panel-' + sessionId);
+        const activeBtn = document.getElementById('session-btn-' + sessionId);
+        if (activePanel) activePanel.classList.remove('hidden');
+        if (activeBtn) {
+            activeBtn.className = "session-tab-btn px-4 py-2 rounded-xl border whitespace-nowrap transition bg-red-600 border-red-600 text-white";
+        }
+    }
+</script>
 {% endblock %}

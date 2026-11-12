@@ -10,19 +10,29 @@
         <div>
             <div class="flex items-center gap-2 mb-1">
                 <span class="w-2 h-2 rounded-full bg-red-600"></span>
-                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">برنامه زمانی رسمی</span>
+                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">برنامه زمانی و آرشیو نتایج</span>
             </div>
-            <h1 class="text-2xl md:text-3xl font-black text-white">تقویم مسابقات فصل {{ season.year }}</h1>
+            <h1 class="text-2xl md:text-3xl font-black text-white">تقویم و نتایج مسابقات فصل {{ season.year }}</h1>
         </div>
-        <div class="text-xs text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-2 rounded-lg">
-            زمان‌ها بر اساس ساعت رسمی ایران محاسبه شده‌اند.
+
+        <div class="flex items-center gap-3">
+            <!-- انتخابگر فصل برای آرشیو -->
+            <form method="GET" class="flex items-center gap-2">
+                <label for="season-select" class="text-xs text-zinc-400">انتخاب فصل:</label>
+                <select id="season-select" name="season" onchange="this.form.submit()"
+                        class="bg-zinc-900 border border-zinc-800 text-white text-xs font-bold rounded-lg px-3 py-2 focus:outline-none focus:border-red-600">
+                    {% for s in seasons %}
+                    <option value="{{ s.year }}" {% if s.year == season.year %}selected{% endif %}>فصل {{ s.year }}</option>
+                    {% endfor %}
+                </select>
+            </form>
         </div>
     </div>
 
     <!-- گرید کارت‌های گرندپری -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {% for gp in grands_prix %}
-        <a href="{% url 'grandprix_calendar:grandprix_detail' gp.round_number %}" 
+        <a href="{% url 'grandprix_calendar:grandprix_detail' gp.round_number %}"?season={{ season.year }}
            class="bg-zinc-900/70 border border-zinc-800/80 hover:border-zinc-700 rounded-2xl p-5 transition flex flex-col justify-between group relative overflow-hidden">
             
             <!-- وضعیت گرندپری (برگزار شده / جاری / آینده) -->
