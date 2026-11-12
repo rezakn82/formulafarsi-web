@@ -41,9 +41,14 @@ def home_view(request):
 def article_detail_view(request, slug):
     # دریافت خبر منتشر شده همراه با تیم‌ها و راننده‌های تگ‌شده با بهینه‌سازی کوئری
     article = get_object_or_404(
-        Article.objects.prefetch_related('related_drivers', 'related_teams').select_related('category', 'author', 'related_grand_prix'),
+        Article.objects.prefetch_related('related_drivers', 'related_teams').select_related(
+            'category',
+            'author',
+            'related_grand_prix',
+            'related_grand_prix__season',
+        ),
         slug=slug,
-        status='published'
+        status='published',
     )
 
     # پیدا کردن اخبار مرتبط بر اساس راننده یا تیم مشترک (بدون احتساب خود این خبر)

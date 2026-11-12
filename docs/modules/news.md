@@ -85,7 +85,7 @@ Serves the full news archive (`templates/news/articles_list.html`):
 
 ### `article_detail_view(request, slug)`
 Serves a single published article (`templates/news/article_detail.html`):
-- Fetches the `Article` with `status='published'` using `prefetch_related('related_drivers', 'related_teams')` and `select_related('category', 'author', 'related_grand_prix')`. Returns HTTP 404 if not found or still in `'draft'` status.
+- Fetches the `Article` with `status='published'` using `prefetch_related('related_drivers', 'related_teams')` and `select_related('category', 'author', 'related_grand_prix', 'related_grand_prix__season')`. Returns HTTP 404 if not found or still in `'draft'` status.
 - **Smart Related Articles (`related_articles`):**
   Finds up to 3 other published articles sharing any tagged driver (`related_drivers__in`), tagged team (`related_teams__in`), or the same `category`, excluding the current article (`exclude(id=article.id).distinct().select_related('category')[:3]`).
 
@@ -140,5 +140,4 @@ uv run pytest apps/news
 
 ## 9. Known Limitations & TODOs
 
-- Tagged drivers/teams/Grand Prix badges in [`templates/news/article_detail.html`](../../templates/news/article_detail.html) currently render as static `<span>` badges rather than clickable `<a>` links to their respective detail pages (tracked in [`docs/TODO.md`](../TODO.md)).
 - Category slugs in `articles_list.html` are not yet clickable from article cards.

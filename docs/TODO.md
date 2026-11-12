@@ -9,10 +9,6 @@ This document tracks verified issues in the current codebase, missing test cover
 
 ## 🐛 Bugs & Codebase Edge Cases to Fix
 
-- [ ] **Clickable Relational Tags on Article Detail (`apps.news`):**
-  - In [`templates/news/article_detail.html`](../templates/news/article_detail.html#L75-L91), tagged `related_drivers`, `related_teams`, and `related_grand_prix` are rendered as non-clickable `<span>` elements.
-  - **Fix:** Convert them into `<a>` links pointing to `{% url 'racing:driver_detail' driver.code %}`, `{% url 'racing:team_detail' team.pk %}`, and `{% url 'grandprix_calendar:grandprix_detail' article.related_grand_prix.round_number %}`.
-
 - [ ] **Render Teammate Comparison on Driver Detail (`apps.racing`):**
   - [`apps/racing/views.py`](../apps/racing/views.py#L19-L21) queries `teammates` and passes it in the `driver_detail_view` context, but [`templates/racing/driver_detail.html`](../templates/racing/driver_detail.html) never renders `teammates`.
   - **Fix:** Add a "هم‌تیمی (Teammate)" section/card to `driver_detail.html`.
