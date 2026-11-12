@@ -1,6 +1,6 @@
 # Module: `grandprix_calendar` (`apps.grandprix_calendar`)
 
-`apps.grandprix_calendar` manages Formula 1 championship seasons (`Season`), race weekends (`GrandPrix`), and individual track sessions (`Session` — Practice, Qualifying, Sprint, and Main Race).
+`apps.grandprix_calendar` manages Formula 1 championship seasons (`Season`), race weekends (`GrandPrix`), individual track sessions (`Session` — Practice, Qualifying, Sprint, and Main Race), and official session classification results (`SessionResult`).
 
 ---
 
@@ -9,7 +9,8 @@
 - Track F1 championship seasons (`Season`) and designate the active season (`is_current=True`).
 - Organize the season calendar into sequential rounds (`GrandPrix`), linking each round to its host `Circuit` (`apps.racing.models.Circuit`).
 - Schedule every weekend session (`Session`: FP1, FP2, FP3, Sprint Shootout, Sprint, Qualifying, Main Race) with UTC timestamps automatically localized to `Asia/Tehran` in templates.
-- Power the next-session countdown/banner on the home page (`apps.news.views.home_view`), the season calendar page (`/calendar/`), and individual Grand Prix weekend pages (`/calendar/round-<round_number>/`).
+- Store and display full driver/team classification results (`SessionResult`) for completed sessions, supporting both Qualifying (`Q1`/`Q2`/`Q3`) and Race/Sprint (`grid_position`, `laps`, `time_or_gap`, `points`, `fastest_lap`) formats.
+- Power the next-session countdown/banner on the home page (`apps.news.views.home_view`), the season calendar & archive page (`/calendar/`), and individual Grand Prix weekend pages (`/calendar/round-<round_number>/`).
 
 ---
 
@@ -49,69 +50,21 @@ Represents an individual on-track session during a `GrandPrix` weekend.
 | `session_type` | `CharField(max_length=20)` | Choices: `'fp1'`, `'fp2'`, `'fp3'`, `'qualifying'`, `'sprint_shootout'`, `'sprint'`, `'race'` | Type of session (`نوع جلسه`) |
 | `start_time` | `DateTimeField` | Required | Session start timestamp (`زمان شروع`) |
 
-- **Default Ordering:** `ordering = ['start_time']`.
+- **Constraints & Ordering:** `unique_together = ('grand_prix', 'session_type')`, `ordering = ['start_time']`.
 
----
+### `SessionResult`
+Stores an individual driver's classification result for a specific `Session`.
 
-## 3. File-by-File Architecture
-
-| File | Responsibility |
-| :--- | :--- |
-| [`apps/grandprix_calendar/apps.py`](../../apps/grandprix_calendar/apps.py) | `GrandprixCalendarConfig` (`name = 'apps.grandprix_calendar'`, `label = 'grandprix_calendar'`). |
-| [`apps/grandprix_calendar/models.py`](../../apps/grandprix_calendar/models.py) | Defines `Season`, `GrandPrix`, and `Session` models. |
-| [`apps/grandprix_calendar/views.py`](../../apps/grandprix_calendar/views.py) | Implements `calendar_view` and `grandprix_detail_view`. |
-| [`apps/grandprix_calendar/urls.py`](../../apps/grandprix_calendar/urls.py) | URL patterns under `app_name = 'grandprix_calendar'`. |
-| [`apps/grandprix_calendar/admin.py`](../../apps/grandprix_calendar/admin.py) | Registers `Season` and `GrandPrixAdmin` with `SessionInline`. |
-| [`apps/grandprix_calendar/tests.py`](../../apps/grandprix_calendar/tests.py) | Test module for `apps.grandprix_calendar`. |
-
----
-
-## 4. Views, Business Logic & Query Optimization (`apps/grandprix_calendar/views.py`)
-
-### `calendar_view(request)`
-Serves the full season race calendar (`templates/grandprix_calendar/calendar_list.html`):
-- Resolves `current_season` via `Season.objects.filter(is_current=True).first() or Season.objects.order_by('-year').first()`.
-- Queries `GrandPrix.objects.filter(season=current_season).select_related('circuit').prefetch_related('sessions').order_by('round_number')`.
-- Passes `today = timezone.now().date()` so the template can visually distinguish completed Grands Prix (`end_date < today`) from upcoming ones.
-
-### `grandprix_detail_view(request, round_number)`
-Serves the detailed schedule and circuit specifications for a single Grand Prix round (`templates/grandprix_calendar/grandprix_detail.html`):
-- Resolves `current_season`.
-- Fetches the `GrandPrix` with `select_related('circuit', 'season').prefetch_related('sessions')` matching `(season=current_season, round_number=round_number)` or raises HTTP 404.
-- Passes `now = timezone.now()` so the template can mark past sessions vs. upcoming sessions.
-
----
-
-## 5. URLs & Templates
-
-Namespace: `grandprix_calendar` (mounted under `/calendar/` in `config/urls.py`).
-
-| URL Pattern | View Name | View Function | Template |
+| Field | Type | Constraints / Options | Description |
 | :--- | :--- | :--- | :--- |
-| `/calendar/` | `grandprix_calendar:calendar_list` | `calendar_view` | [`templates/grandprix_calendar/calendar_list.html`](../../templates/grandprix_calendar/calendar_list.html) |
-| `/calendar/round-<int:round_number>/` | `grandprix_calendar:grandprix_detail` | `grandprix_detail_view` | [`templates/grandprix_calendar/grandprix_detail.html`](../../templates/grandprix_calendar/grandprix_detail.html) |
-
----
-
-## 6. Django Admin Configuration (`apps/grandprix_calendar/admin.py`)
-
-- **`SessionInline(admin.TabularInline)`:** Embedded inside `GrandPrixAdmin` with `extra = 5` so all 5 weekend sessions (FP1, FP2, FP3/Sprint, Qualifying, Main Race) can be entered on a single screen when creating a Grand Prix.
-- **`GrandPrixAdmin`:** Displays `('name', 'season', 'round_number', 'start_date', 'end_date')`, filtered by `season`.
-- **`Season`:** Registered via `admin.site.register(Season)`.
-
----
-
-## 7. Testing
-
-Run tests for this module:
-```bash
-uv run pytest apps/grandprix_calendar
-```
-
----
-
-## 8. Known Limitations & TODOs
-
-- `Season.is_current` does not yet enforce in `Season.save()` or via a unique partial constraint that only **one** season can have `is_current=True` at a time (tracked in [`docs/TODO.md`](../TODO.md)).
-- `grandprix_detail_view` does not yet display related news articles (`grand_prix.articles.filter(status='published')`) even though `Article.related_grand_prix` is linked to `GrandPrix`.
-- `GrandPrix` detail URLs are not yet included in `apps/news/sitemaps.py`.
+| `id` | `BigAutoField` | Primary Key | Auto-generated ID |
+| `session` | `ForeignKey(Session)` | `on_delete=CASCADE`, `related_name='results'` | Parent track session |
+| `driver` | `ForeignKey('racing.Driver')` | `on_delete=CASCADE`, `related_name='session_results'` | Participating driver |
+| `team` | `ForeignKey('racing.Team')` | `on_delete=CASCADE`, `related_name='session_results'` | Constructor team for that session |
+| `position` | `PositiveSmallIntegerField` | Required | Finishing / classification order (`رتبه`) |
+| `status` | `CharField(max_length=15)` | Choices: `'finished'`, `'dnf'`, `'dns'`, `'dsq'`; default `'finished'` | Classification status (`وضعیت`) |
+| `grid_position` | `PositiveSmallIntegerField` | `null=True`, `blank=True` | Starting grid slot (`خط شروع`) |
+| `laps` | `PositiveSmallIntegerField` | Default `0` | Completed laps (`تعداد دورها`) |
+| `time_or_gap` | `CharField(max_length=50)` | `blank=True` | Race time or gap to leader (`زمان / فاصله`) |
+| `q1_time` | `CharField(max_length=20)` | `blank=True` | Q1 / SQ1 lap time (`زمان Q1 / SQ1`) |
+| `q2_time` | `CharField(max_length=

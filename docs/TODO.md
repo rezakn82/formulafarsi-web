@@ -21,13 +21,6 @@ This document tracks verified issues in the current codebase, missing test cover
   - [`apps/racing/views.py`](../apps/racing/views.py#L19-L21) queries `teammates` and passes it in the `driver_detail_view` context, but [`templates/racing/driver_detail.html`](../templates/racing/driver_detail.html) never renders `teammates`.
   - **Fix:** Add a "هم‌تیمی (Teammate)" section/card to `driver_detail.html`.
 
-- [ ] **Show Related News on Grand Prix Detail Page (`apps.grandprix_calendar` & `apps.news`):**
-  - `Article.related_grand_prix` defines `related_name='articles'`, but `grandprix_detail_view` in [`apps/grandprix_calendar/views.py`](../apps/grandprix_calendar/views.py#L23-L39) does not query or render `grand_prix.articles.filter(status='published')`.
-  - **Fix:** Pass `related_articles` in `grandprix_detail_view` and display them at the bottom of `grandprix_detail.html`.
-
-- [ ] **Avoid Redundant `prefetch_related` Re-ordering Query (`apps.grandprix_calendar`):**
-  - In [`apps/grandprix_calendar/views.py`](../apps/grandprix_calendar/views.py#L27-L36), `grandprix_detail_view` prefetches `'sessions'` on line 27, then calls `grand_prix.sessions.all().order_by('start_time')` on line 36, which bypasses the prefetch cache and issues an extra SQL query (`Session.Meta.ordering` is already `['start_time']`, so `grand_prix.sessions.all()` is already ordered).
-
 ---
 
 ## 🧪 Testing & Quality Assurance
@@ -51,7 +44,5 @@ This document tracks verified issues in the current codebase, missing test cover
   - Allow users to switch seasons via `?season=2025` on `/racing/standings/` and `/calendar/` to view historical championship results and calendars.
 - [ ] **Persian (Jalali / Solar Hijri) Date Filter:**
   - Add `jdatetime` or custom template filters to display Persian Solar Hijri dates alongside Gregorian dates for news articles and race sessions.
-- [ ] **Session Results & Race Classification Model (`apps.grandprix_calendar` / `apps.racing`):**
-  - Add a `SessionResult` model to store pole position, fastest lap, and P1–P20 finishing order for completed sessions, and optionally auto-calculate `DriverStanding` and `TeamStanding` points.
 - [ ] **Production Static & Media Serving:**
   - Add `whitenoise` for compressed static file serving and `Dockerfile` / `compose.yaml` for containerized deployment with PostgreSQL.

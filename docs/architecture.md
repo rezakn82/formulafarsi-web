@@ -132,6 +132,9 @@ erDiagram
     DRIVER ||--o{ DRIVER_STANDING : "standings (CASCADE)"
     SEASON ||--o{ TEAM_STANDING : "team_standings (CASCADE)"
     TEAM ||--o{ TEAM_STANDING : "standings (CASCADE)"
+    SESSION ||--o{ SESSION_RESULT : "results (CASCADE)"
+    DRIVER ||--o{ SESSION_RESULT : "session_results (CASCADE)"
+    TEAM ||--o{ SESSION_RESULT : "session_results (CASCADE)"
 
     SEASON ||--o{ GRAND_PRIX : "grands_prix (CASCADE)"
     CIRCUIT ||--o{ GRAND_PRIX : "grands_prix (CASCADE)"
@@ -225,6 +228,22 @@ erDiagram
         bigint grand_prix_id FK
         varchar session_type
         datetime start_time
+    }
+    SESSION_RESULT {
+        bigint id PK
+        bigint session_id FK
+        bigint driver_id FK
+        bigint team_id FK
+        smallint position
+        varchar status "finished | dnf | dns | dsq"
+        smallint grid_position
+        smallint laps
+        varchar time_or_gap
+        varchar q1_time
+        varchar q2_time
+        varchar q3_time
+        decimal points
+        boolean fastest_lap
     }
 ```
 
