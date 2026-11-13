@@ -56,7 +56,7 @@ Represents a news article with rich-text HTML body and relational tags.
 | :--- | :--- |
 | [`apps/news/apps.py`](../../apps/news/apps.py) | `NewsConfig` (`name = 'apps.news'`, `label = 'news'`). |
 | [`apps/news/models.py`](../../apps/news/models.py) | Defines `Category` and `Article` models. |
-| [`apps/news/views.py`](../../apps/news/views.py) | Implements `home_view`, `articles_list_view`, and `article_detail_view`. |
+| [`apps/news/views.py`](../../apps/news/views.py) | Implements `home_view`, `articles_list_view`, `article_detail_view`, and `global_search_view`. |
 | [`apps/news/urls.py`](../../apps/news/urls.py) | URL patterns under `app_name = 'news'`. |
 | [`apps/news/admin.py`](../../apps/news/admin.py) | Registers `CategoryAdmin` and `ArticleAdmin` (`SummernoteModelAdmin`). |
 | [`apps/news/sitemaps.py`](../../apps/news/sitemaps.py) | Defines `ArticleSitemap`, `StaticViewSitemap`, `DriverSitemap`, and `TeamSitemap`. |
@@ -80,7 +80,6 @@ Aggregates three domain sections for the landing page (`templates/news/home.html
 Serves the full news archive (`templates/news/articles_list.html`):
 - Starts with `Article.objects.filter(status='published').select_related('category', 'author')`.
 - **Category Filter (`?category=<slug>`):** Filters by `category__slug`.
-- **Full-Text Search (`?q=<query>`):** Filters across `title__icontains`, `lead__icontains`, and `body__icontains` with `.distinct()`.
 - **Pagination (`?page=<n>`):** Paginates 9 articles per page (`Paginator(articles_queryset, 9)`).
 - Passes all `Category` objects for the filter bar.
 
@@ -89,6 +88,14 @@ Serves a single published article (`templates/news/article_detail.html`):
 - Fetches the `Article` with `status='published'` using `prefetch_related('related_drivers', 'related_teams')` and `select_related('category', 'author', 'related_grand_prix', 'related_grand_prix__season')`. Returns HTTP 404 if not found or still in `'draft'` status.
 - **Smart Related Articles (`related_articles`):**
   Finds up to 3 other published articles sharing any tagged driver (`related_drivers__in`), tagged team (`related_teams__in`), or the same `category`, excluding the current article (`exclude(id=article.id).distinct().select_related('category')[:3]`).
+
+### `global_search_view(request)`
+Serves the site-wide global search results page (`templates/news/search_results.html`) via `?q=<query>`:
+- **Seasons:** Matches numeric queries against `Season.year`.
+- **Grands Prix:** Searches `GrandPrix.name`, `circuit__name`, `circuit__country`, and `circuit__location` with `select_related('season', 'circuit')`.
+- **Drivers:** Searches `first_name`, `last_name`, `code`, `country`, `team__name`, and exact `permanent_number` (when numeric) with `select_related('team')`.
+- **Teams:** Searches `name`, `full_name`, `base`, `team_chief`, and `power_unit` with `prefetch_related('drivers')`.
+- **Articles:** Searches published articles across `title`, `lead`, and `body` with `select_related('category', 'author')` and `.distinct()`.
 
 ---
 
@@ -112,6 +119,7 @@ Namespace: `news` (included at root `''` in `config/urls.py`).
 | URL Pattern | View Name | View Function | Template |
 | :--- | :--- | :--- | :--- |
 | `/` | `news:home` | `home_view` | [`templates/news/home.html`](../../templates/news/home.html) |
+| `/search/` | `news:global_search` | `global_search_view` | [`templates/news/search_results.html`](../../templates/news/search_results.html) |
 | `/news/` | `news:articles_list` | `articles_list_view` | [`templates/news/articles_list.html`](../../templates/news/articles_list.html) |
 | `/news/<slug>/` (`re_path(r'^news/(?P<slug>[-\w]+)/$')`) | `news:article_detail` | `article_detail_view` | [`templates/news/article_detail.html`](../../templates/news/article_detail.html) |
 

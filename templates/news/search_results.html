@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}نتایج جستجو برای «{{ search_query }}» | فرمولافارسی{% endblock %}
+
+{% block content %}
+<div class="space-y-10">
+
+    <!-- سربرگ نتایج جستجو -->
+    <div class="border-b border-zinc-800 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">GLOBAL SEARCH</span>
+            </div>
+            {% if search_query %}
+            <h1 class="text-2xl md:text-3xl font-black text-white">
+                نتایج جستجو برای: <span class="text-red-500">«{{ search_query }}»</span>
+            </h1>
+            <p class="text-xs text-zinc-400 mt-1.5">{{ total_results }} نتیجه در بخش‌های مختلف سایت یافت شد.</p>
+            {% else %}
+            <h1 class="text-2xl md:text-3xl font-black text-white">جستجو در فرمولافارسی</h1>
+            <p class="text-xs text-zinc-400 mt-1.5">نام راننده، تیم، پیست، گرندپری، سال فصل یا موضوع خبر را وارد کنید.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if search_query and total_results > 0 %}
+
+        <!-- ۱. نتایج فصل‌ها -->
+        {% if seasons %}
+        <section class="space-y-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
+                فصل‌های مسابقات ({{ seasons|length }})
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {% for s in seasons %}
+                <a href="{% url 'grandprix_calendar:calendar_list' %}?season={{ s.year }}"
+                   class="bg-zinc-900 border border-zinc-800 hover:border-red-500/60 rounded-xl p-4 flex items-center justify-between transition group">
+                    <div>
+                        <span class="text-base font-black text-white group-hover:text-red-400 transition">تقویم و نتایج فصل {{ s.year }}</span>
+                        {% if s.is_current %}
+                        <span class="block text-[11px] text-emerald-400 mt-0.5">فصل جاری</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-xs text-red-500 font-bold">مشاهده ←</span>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ۲. نتایج رانندگان -->
+        {% if drivers %}
+        <section class="space-y-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
+                رانندگان ({{ drivers|length }})
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {% for driver in drivers %}
+                <a href="{% url 'racing:driver_detail' driver.code %}"
+                   class="bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl p-4 flex items-center justify-between transition group relative overflow-hidden">
+                    <div class="absolute right-0 top-0 bottom-0 w-1.5" style="background-color: {{ driver.team.color_code|default:'#e10600' }};"></div>
+                    <div class="flex items-center gap-3 pr-2">
+                        {% if driver.portrait %}
+                        <img src="{{ driver.portrait.url }}" alt="{{ driver.full_name }}" class="w-12 h-12 rounded-lg object-contain bg-zinc-950 border border-zinc-800">
+                        {% endif %}
+                        <div>
+                            <h3 class="text-sm font-bold text-white group-hover:text-red-400 transition">{{ driver.full_name }}</h3>
+                            <span class="text-xs text-zinc-400 block">{{ driver.team.name|default:"آزاد" }} • {{ driver.country }}</span>
+                        </div>
+                    </div>
+                    <span class="text-xl font-black font-mono italic text-zinc-600 group-hover:text-red-500 transition">#{{ driver.permanent_number }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ۳. نتایج تیم‌ها -->
+        {% if teams %}
+        <section class="space-y-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
+                تیم‌ها ({{ teams|length }})
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for team in teams %}
+                <a href="{% url 'racing:team_detail' team.pk %}"
+                   class="bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl p-5 flex items-center justify-between transition group relative overflow-hidden">
+                    <div class="absolute right-0 top-0 bottom-0 w-1.5" style="background-color: {{ team.color_code|default:'#e10600' }};"></div>
+                    <div class="pr-2">
+                        <h3 class="text-base font-black text-white group-hover:text-red-400 transition">{{ team.name }}</h3>
+                        <p class="text-xs text-zinc-400 mt-1">مدیر تیم: {{ team.team_chief }} | پیشرانه: {{ team.power_unit }}</p>
+                    </div>
+                    {% if team.logo %}
+                    <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="h-10 max-w-[70px] object-contain">
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ۴. نتایج مسابقات و گرندپری‌ها -->
+        {% if grands_prix %}
+        <section class="space-y-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
+                مسابقات و گرندپری‌ها ({{ grands_prix|length }})
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for gp in grands_prix %}
+                <a href="{% url 'grandprix_calendar:grandprix_detail' gp.round_number %}?season={{ gp.season.year }}"
+                   class="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl p-4 flex flex-col justify-between transition group">
+                    <div>
+                        <div class="flex items-center justify-between text-xs text-zinc-400 mb-2">
+                            <span class="bg-zinc-800 px-2 py-0.5 rounded font-mono">راند {{ gp.round_number }} • فصل {{ gp.season.year }}</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white group-hover:text-red-400 transition">{{ gp.name }}</h3>
+                        <p class="text-xs text-zinc-400 mt-1">📍 {{ gp.circuit.name }} ({{ gp.circuit.country }})</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400">
+                        <span>{{ gp.start_date|jalali_date:"j F" }} تا {{ gp.end_date|jalali_date:"j F Y" }}</span>
+                        <span class="text-red-500 font-bold">جزئیات و نتایج ←</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ۵. نتایج اخبار و مقالات -->
+        {% if articles %}
+        <section class="space-y-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
+                اخبار و مقالات ({{ articles|length }})
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for article in articles %}
+                <a href="{{ article.get_absolute_url }}"
+                   class="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl overflow-hidden transition group flex flex-col justify-between shadow-lg">
+                    <div>
+                        {% if article.featured_image %}
+                        <div class="aspect-video w-full overflow-hidden bg-zinc-950">
+                            <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        </div>
+                        {% endif %}
+                        <div class="p-5">
+                            {% if article.category %}
+                            <span class="text-[11px] bg-red-600/10 text-red-500 border border-red-500/20 px-2.5 py-0.5 rounded font-bold">
+                                {{ article.category.title }}
+                            </span>
+                            {% endif %}
+                            <h3 class="text-base font-bold text-white mt-2.5 group-hover:text-red-400 transition line-clamp-2 leading-snug">
+                                {{ article.title }}
+                            </h3>
+                            <p class="text-xs text-zinc-400 mt-2 line-clamp-2 leading-relaxed">
+                                {{ article.lead }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="px-5 py-3 border-t border-zinc-800/80 bg-zinc-950/40 flex items-center justify-between text-[11px] text-zinc-500">
+                        <span>{{ article.author.get_full_name|default:article.author.username }}</span>
+                        <span>{{ article.created_at|jalali_date:"j F Y" }} ({{ article.created_at|date:"Y/m/d" }})</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+    {% elif search_query %}
+        <!-- حالت عدم یافتن نتیجه -->
+        <div class="text-center py-16 bg-zinc-900/40 rounded-2xl border border-zinc-800 space-y-3">
+            <p class="text-zinc-300 font-bold text-base">هیچ نتیجه‌ای برای «{{ search_query }}» یافت نشد.</p>
+            <p class="text-xs text-zinc-500">املای کلمه را بررسی کنید یا نام راننده، تیم، پیست یا سال فصل (مثلاً 2026) را جستجو نمایید.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
