@@ -1,0 +1,57 @@
+# Local / Staging Docker Compose (PostgreSQL + Gunicorn):
+#   cp env/.env.docker.example env/.env.docker
+#   docker compose up --build
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file:
+      - path: env/.env.docker
+        required: false
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - path: env/.env.docker
+        required: false
+    environment:
+      DJANGO_ENV: docker
+      DJANGO_SETTINGS_MODULE: config.settings.docker
+      STATIC_ROOT: /app/staticfiles
+      MEDIA_ROOT: /app/media
+    ports:
+      - "8000:8000"
+    volumes:
+      - staticfiles_data:/app/staticfiles
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import os, urllib.request; host = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')[0].strip(); req = urllib.request.Request('http://127.0.0.1:8000/sitemap.xml', headers={'Host': host}); urllib.request.urlopen(req, timeout=3)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  postgres_data:
+  staticfiles_data:
+  media_data:

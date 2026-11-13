@@ -1,0 +1,34 @@
+# Version control & local tooling
+.git/
+.gitignore
+.python-version
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+__pycache__/
+*.py[codz]
+.coverage
+htmlcov/
+
+# Local databases, media, collected static & secrets
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+env/
+.env
+.env.*
+*.log
+
+# Documentation & IDE files
+docs/
+README.md
+CONTRIBUTING.md
+GEMINI.md
+.agent/
+.idea/
+.vscode/
+config/tests.py
+apps/*/tests.py
