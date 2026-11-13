@@ -1,40 +1,31 @@
 """
-Django settings for FormulaFarsi (config project).
+Base Django settings shared across all FormulaFarsi environments.
 
-Environment variables are loaded from ``env/.env`` (and optional ``env/.env.<DJANGO_ENV>``)
-via ``config.env`` using ``django-environ`` and ``python-dotenv``.
+Environment variables are loaded from optional ``env/.env`` and environment-specific
+``env/.env.<profile>`` files via ``config.env`` using ``django-environ`` and
+``python-dotenv``.
 """
 
-from importlib.util import find_spec
 from pathlib import Path
 
-from config.env import Env, load_env_files
-from django.urls import reverse_lazy
 from django.templatetags.static import static
+from django.urls import reverse_lazy
+
+from config.env import Env, load_env_files
 
 # ==============================================================================
 # PATHS & ENVIRONMENT
 # ==============================================================================
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ENV_DIR = BASE_DIR / "env"
 
 load_env_files(ENV_DIR)
 env = Env()
 
 # ==============================================================================
-# CORE SECURITY & APPLICATION
+# CORE APPLICATION
 # ==============================================================================
-SECRET_KEY = env.required("SECRET_KEY")
 ADMIN_URL = env.str("ADMIN_URL", default="admin/")
-
-DEBUG = env.bool("DEBUG", default=False)
-
-ALLOWED_HOSTS = env.list(
-    "ALLOWED_HOSTS",
-    default=["localhost", "127.0.0.1"] if DEBUG else [],
-)
-
-CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 INSTALLED_APPS = [
     "unfold",
@@ -56,6 +47,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -63,15 +55,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-# Enable development-only extensions and debug toolbar when installed
-if DEBUG:
-    if find_spec("django_extensions") is not None:
-        INSTALLED_APPS.append("django_extensions")
-    if find_spec("debug_toolbar") is not None:
-        INSTALLED_APPS.append("debug_toolbar")
-        MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
-        INTERNAL_IPS = env.list("INTERNAL_IPS", default=["127.0.0.1", "localhost"])
 
 ROOT_URLCONF = "config.urls"
 
@@ -97,16 +80,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ==============================================================================
-# DATABASE
-# ==============================================================================
-DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-    ),
-}
-
-# ==============================================================================
 # PASSWORD VALIDATION
 # ==============================================================================
 AUTH_PASSWORD_VALIDATORS = [
@@ -128,11 +101,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # INTERNATIONALIZATION
 # ==============================================================================
 LANGUAGE_CODE = env.str("LANGUAGE_CODE", default="fa-ir")
-
 TIME_ZONE = env.str("TIME_ZONE", default="Asia/Tehran")
-
 USE_I18N = True
-
 USE_TZ = True
 
 # ==============================================================================
@@ -144,14 +114,6 @@ STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else 
 
 MEDIA_URL = env.str("MEDIA_URL", default="/media/")
 MEDIA_ROOT = Path(env.str("MEDIA_ROOT", default=str(BASE_DIR / "media")))
-
-# ==============================================================================
-# EMAIL
-# ==============================================================================
-EMAIL_BACKEND = env.str(
-    "EMAIL_BACKEND",
-    default="django.core.mail.backends.console.EmailBackend",
-)
 
 # ==============================================================================
 # SUMMERNOTE RICH-TEXT EDITOR
@@ -298,17 +260,18 @@ ATTRIBUTES = {
     "th": ["colspan", "rowspan", "width", "height", "scope"],
 }
 
-# Unfold Admin Panel
-
+# ==============================================================================
+# UNFOLD ADMIN PANEL
+# ==============================================================================
 UNFOLD = {
     "SITE_TITLE": "مدیریت فرمولافارسی",
     "SITE_HEADER": "پیت‌وال فرمولافارسی",
     "SITE_SUBHEADER": "پنل تحریریه و مدیریت نتایج F1",
     "SITE_URL": "/",
-    "SITE_SYMBOL": "sports_motorsports",  # آیکون کلاه ایمنی از Google Material Symbols
+    "SITE_SYMBOL": "sports_motorsports",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
-    "THEME": "dark",  # فعال بودن پیش‌فرض حالت تیره (هماهنگ با سایت اصلی)
+    "THEME": "dark",
     "STYLES": [
         lambda request: static("css/admin-custom.css"),
     ],
@@ -320,7 +283,7 @@ UNFOLD = {
             "300": "252 165 165",
             "400": "248 113 113",
             "500": "239 68 68",
-            "600": "225 6 0",    # قرمز رسمی فرمول یک (#E10600)
+            "600": "225 6 0",
             "700": "185 28 28",
             "800": "153 27 27",
             "900": "127 29 29",

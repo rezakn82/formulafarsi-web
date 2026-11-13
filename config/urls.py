@@ -16,17 +16,18 @@ Including another URLconf
 """
 from importlib.util import find_spec
 
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
+from django.urls import include, path
+
 from apps.news.sitemaps import (
     ArticleSitemap,
     DriverSitemap,
     StaticViewSitemap,
     TeamSitemap,
 )
-from django.conf import settings
-from django.conf.urls.static import static
-from django.contrib import admin
-from django.contrib.sitemaps.views import sitemap
-from django.urls import include, path
 
 sitemaps = {
     'articles': ArticleSitemap,
@@ -47,5 +48,5 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    if find_spec('debug_toolbar') is not None:
-        urlpatterns += [path('__debug__/', include('debug_toolbar.urls'))]
+    if "debug_toolbar" in settings.INSTALLED_APPS and find_spec("debug_toolbar") is not None:
+        urlpatterns += [path("__debug__/", include("debug_toolbar.urls"))]

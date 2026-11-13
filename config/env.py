@@ -9,6 +9,14 @@ import environ
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
+SETTINGS_MODULE_ENV_MAP = {
+    "local": "local",
+    "development": "local",
+    "docker": "docker",
+    "production": "production",
+    "test": "test",
+}
+
 
 class Env(environ.Env):
     """Strict ``django-environ`` subclass that validates environment values explicitly.
@@ -52,20 +60,49 @@ class Env(environ.Env):
         return value
 
 
+def resolve_django_env(process_env: dict[str, str]) -> str | None:
+    """Resolve the active environment profile from OS env or ``DJANGO_SETTINGS_MODULE``."""
+    explicit_env = process_env.get("DJANGO_ENV", "").strip()
+    if explicit_env:
+        return explicit_env
+
+    settings_module = process_env.get("DJANGO_SETTINGS_MODULE", "").strip()
+    if settings_module:
+        suffix = settings_module.rsplit(".", maxsplit=1)[-1]
+        if suffix in SETTINGS_MODULE_ENV_MAP:
+            return SETTINGS_MODULE_ENV_MAP[suffix]
+
+    return None
+
+
 def load_env_files(env_dir: Path) -> None:
-    """Load ``.env`` and optional ``.env.<DJANGO_ENV>`` from ``env_dir`` into ``os.environ``.
+    """Load environment files from ``env_dir`` into ``os.environ``.
 
     Priority (highest to lowest):
     1. Existing process environment variables (``os.environ``)
-    2. Environment-specific file (``env/.env.<DJANGO_ENV>``)
-    3. Base environment file (``env/.env``)
+    2. Environment-specific file (``env/.env.<profile>``)
+    3. Optional shared base environment file (``env/.env``)
+
+    The profile is resolved from ``DJANGO_ENV`` in ``os.environ`` first, then from the
+    ``DJANGO_SETTINGS_MODULE`` suffix (``local``, ``production``, ``test``), and finally
+    from ``env/.env`` or ``"local"``. Test runs only load optional ``env/.env.test`` so
+    automated tests remain isolated from local/production environment files.
     """
     process_env = dict(os.environ)
+    resolved_env = resolve_django_env(process_env)
+
+    if resolved_env == "test":
+        test_env_file = env_dir / ".env.test"
+        if test_env_file.exists():
+            load_dotenv(test_env_file, override=True)
+        os.environ.update(process_env)
+        return
+
     base_env_file = env_dir / ".env"
     if base_env_file.exists():
         load_dotenv(base_env_file)
 
-    django_env = os.environ.get("DJANGO_ENV", "local")
+    django_env = resolved_env or os.environ.get("DJANGO_ENV", "local")
     specific_env_file = env_dir / f".env.{django_env}"
     if specific_env_file.exists():
         load_dotenv(specific_env_file, override=True)
