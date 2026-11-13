@@ -1,16 +1,17 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
+from unfold.admin import ModelAdmin
 
 from .models import Article, Category
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
 
 
 @admin.register(Article)
-class ArticleAdmin(SummernoteModelAdmin):
+class ArticleAdmin(ModelAdmin, SummernoteModelAdmin):
     summernote_fields = ('body',)
     list_display = ('title', 'category', 'author', 'status', 'created_at')
     list_filter = ('status', 'category', 'created_at')

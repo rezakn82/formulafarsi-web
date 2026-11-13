@@ -1,0 +1,19 @@
+/* بارگذاری فونت وزیرمتن از CDN رسمی (یا فایل‌های لوکال پروژه) */
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+
+/* اعمال فونت وزیرمتن به کل پنل مدیریت و صفحه ورود Unfold */
+html, body, input, textarea, select, button, table, th, td, h1, h2, h3, h4, h5, h6, p, span, a, div {
+    font-family: 'Vazirmatn', sans-serif !important;
+}
+
+/* حفظ فونت آیکون‌های Material Symbols در Unfold تا آیکون‌ها خراب نشوند */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined' !important;
+}
+
+/* راست‌چین کردن و تنظیم فونت ادیتور Summernote در داخل پنل ادمین */
+.note-editor .note-editable {
+    font-family: 'Vazirmatn', sans-serif !important;
+    direction: rtl !important;
+    text-align: right !important;
+}

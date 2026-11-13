@@ -9,6 +9,8 @@ from importlib.util import find_spec
 from pathlib import Path
 
 from config.env import Env, load_env_files
+from django.urls import reverse_lazy
+from django.templatetags.static import static
 
 # ==============================================================================
 # PATHS & ENVIRONMENT
@@ -34,6 +36,8 @@ ALLOWED_HOSTS = env.list(
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 INSTALLED_APPS = [
+    "unfold",
+    "unfold.contrib.filters",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -119,7 +123,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ==============================================================================
 # INTERNATIONALIZATION
 # ==============================================================================
-LANGUAGE_CODE = env.str("LANGUAGE_CODE", default="en-us")
+LANGUAGE_CODE = env.str("LANGUAGE_CODE", default="fa-ir")
 
 TIME_ZONE = env.str("TIME_ZONE", default="Asia/Tehran")
 
@@ -288,4 +292,109 @@ ATTRIBUTES = {
     "source": ["src", "type"],
     "td": ["colspan", "rowspan", "width", "height"],
     "th": ["colspan", "rowspan", "width", "height", "scope"],
+}
+
+# Unfold Admin Panel
+
+UNFOLD = {
+    "SITE_TITLE": "مدیریت فرمولافارسی",
+    "SITE_HEADER": "پیت‌وال فرمولافارسی",
+    "SITE_SUBHEADER": "پنل تحریریه و مدیریت نتایج F1",
+    "SITE_URL": "/",
+    "SITE_SYMBOL": "sports_motorsports",  # آیکون کلاه ایمنی از Google Material Symbols
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "THEME": "dark",  # فعال بودن پیش‌فرض حالت تیره (هماهنگ با سایت اصلی)
+    "STYLES": [
+        lambda request: static("css/admin-custom.css"),
+    ],
+    "COLORS": {
+        "primary": {
+            "50": "254 242 242",
+            "100": "254 226 226",
+            "200": "254 202 202",
+            "300": "252 165 165",
+            "400": "248 113 113",
+            "500": "239 68 68",
+            "600": "225 6 0",    # قرمز رسمی فرمول یک (#E10600)
+            "700": "185 28 28",
+            "800": "153 27 27",
+            "900": "127 29 29",
+            "950": "69 10 10",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "تحریریه و اخبار",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "اخبار و مقالات",
+                        "icon": "newspaper",
+                        "link": reverse_lazy("admin:news_article_changelist"),
+                    },
+                    {
+                        "title": "دسته‌بندی‌ها",
+                        "icon": "category",
+                        "link": reverse_lazy("admin:news_category_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "مسابقات و تقویم",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "فصل‌ها",
+                        "icon": "calendar_month",
+                        "link": reverse_lazy("admin:grandprix_calendar_season_changelist"),
+                    },
+                    {
+                        "title": "گرندپری‌ها",
+                        "icon": "flag",
+                        "link": reverse_lazy("admin:grandprix_calendar_grandprix_changelist"),
+                    },
+                    {
+                        "title": "سشن‌ها و زمان‌بندی",
+                        "icon": "timer",
+                        "link": reverse_lazy("admin:grandprix_calendar_session_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "اطلاعات فصل و جدول قهرمانی",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "رانندگان",
+                        "icon": "sports_motorsports",
+                        "link": reverse_lazy("admin:racing_driver_changelist"),
+                    },
+                    {
+                        "title": "تیم‌ها (سازندگان)",
+                        "icon": "groups",
+                        "link": reverse_lazy("admin:racing_team_changelist"),
+                    },
+                    {
+                        "title": "پیست‌ها",
+                        "icon": "route",
+                        "link": reverse_lazy("admin:racing_circuit_changelist"),
+                    },
+                    {
+                        "title": "رده‌بندی رانندگان",
+                        "icon": "leaderboard",
+                        "link": reverse_lazy("admin:racing_driverstanding_changelist"),
+                    },
+                    {
+                        "title": "رده‌بندی تیم‌ها",
+                        "icon": "emoji_events",
+                        "link": reverse_lazy("admin:racing_teamstanding_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
 }

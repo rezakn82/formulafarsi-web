@@ -62,7 +62,7 @@
                             {{ item.wins }}
                         </td>
                         <td class="py-4 px-4 text-left font-mono font-black text-white text-base">
-                            {{ item.points }}
+                            {{ item.points|floatformat }}
                         </td>
                     </tr>
                     {% empty %}
@@ -110,7 +110,7 @@
                             {{ item.wins }}
                         </td>
                         <td class="py-4 px-4 text-left font-mono font-black text-white text-base">
-                            {{ item.points }}
+                            {{ item.points|floatformat }}
                         </td>
                     </tr>
                     {% empty %}
