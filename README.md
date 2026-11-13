@@ -41,18 +41,27 @@ formulafarsi-web/
 │   └── racing/               # Circuits, Teams, Drivers, and Championship Standings
 ├── config/
 │   ├── env.py                # Strict django-environ + python-dotenv loader
-│   ├── settings.py           # Project settings driven by environment variables
+│   ├── settings/             # Split settings (base, local, docker, production, test)
+│   ├── tests.py              # Settings & env loader tests
 │   ├── urls.py               # Root URL routing and sitemap registration
-│   ├── asgi.py               # ASGI entrypoint
-│   └── wsgi.py               # WSGI entrypoint
+│   ├── asgi.py               # ASGI entrypoint (production default)
+│   └── wsgi.py               # WSGI entrypoint (production default)
+├── docker/
+│   ├── entrypoint.sh         # PostgreSQL wait, migrations, collectstatic, Gunicorn launch
+│   └── nginx/default.conf    # Production Nginx reverse proxy config
 ├── docs/
 │   ├── README.md             # Documentation index and maintenance rules
 │   ├── architecture.md       # System architecture, ER diagram, and request flow
 │   ├── TODO.md               # Known bugs, technical debt, and feature roadmap
 │   └── modules/              # Per-app detailed documentation (news, racing, grandprix_calendar)
 ├── env/
-│   ├── .env.example          # Template for environment variables
-│   └── .env                  # Local environment configuration (git-ignored)
+│   ├── .env.example          # Shared base template (optional)
+│   ├── .env.local.example    # Local development template
+│   ├── .env.docker.example   # Docker Compose template
+│   ├── .env.production.example # Production deployment template
+│   ├── .env.local            # Local environment configuration (git-ignored)
+│   ├── .env.docker           # Docker environment configuration (git-ignored)
+│   └── .env.production       # Production environment configuration (git-ignored)
 ├── templates/
 │   ├── base.html             # Master RTL layout, navigation bar, and mobile drawer
 │   ├── grandprix_calendar/   # Calendar list and Grand Prix weekend detail templates
@@ -96,20 +105,22 @@ cd formulafarsi-web
 ```
 
 ### 2. Configure Environment Variables
-Copy the example environment file to `env/.env` and customize values if needed:
+Copy the local environment template to `env/.env.local` and customize values if needed:
 ```bash
-cp env/.env.example env/.env
+cp env/.env.local.example env/.env.local
 ```
 
-Key variables in [`env/.env`](env/.env.example):
-| Variable | Description | Default / Example |
+For production deployments, copy `env/.env.production.example` to `env/.env.production` (or inject variables directly via your container/host environment) and use `config.settings.production` (default for `config/wsgi.py` and `config/asgi.py`).
+
+Key variables in [`env/.env.local`](env/.env.local.example) and [`env/.env.production`](env/.env.production.example):
+| Variable | Description | Local Default / Prod Example |
 | :--- | :--- | :--- |
-| `DJANGO_ENV` | Active environment profile (`local`, `docker`, `production`) | `local` |
+| `DJANGO_ENV` | Active environment profile (`local`, `production`, `test`) | `local` / `production` |
 | `SECRET_KEY` | Mandatory Django cryptographic secret key | *(required)* |
-| `DEBUG` | Enable Django debug mode (`True` / `False`) | `True` |
-| `ALLOWED_HOSTS` | Comma-separated list of allowed hostnames | `localhost,127.0.0.1` |
+| `DEBUG` | Enable Django debug mode in local (`False` enforced in prod) | `True` / `False` |
+| `ALLOWED_HOSTS` | Comma-separated list of allowed hostnames (required in prod) | `localhost,127.0.0.1` |
 | `CSRF_TRUSTED_ORIGINS` | Comma-separated list of trusted origins | `http://localhost:8000` |
-| `DATABASE_URL` | Database connection URL (`sqlite://` or `postgres://`) | `sqlite:///db.sqlite3` |
+| `DATABASE_URL` | Database connection URL (required in prod) | `sqlite:///db.sqlite3` / `postgres://...` |
 | `TIME_ZONE` | Server timezone | `Asia/Tehran` |
 
 ### 3. Install Dependencies
@@ -135,6 +146,27 @@ uv run python manage.py runserver_plus
 - **Web Application:** [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 - **Admin Panel:** [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
 - **XML Sitemap:** [http://127.0.0.1:8000/sitemap.xml](http://127.0.0.1:8000/sitemap.xml)
+
+---
+
+## 🐳 Docker & Production Deployment (PostgreSQL + Gunicorn)
+
+FormulaFarsi runs with **Gunicorn (WSGI)** and **WhiteNoise** in Docker alongside **PostgreSQL 17**.
+
+### Local / Staging Docker Stack
+```bash
+cp env/.env.docker.example env/.env.docker
+docker compose up --build
+```
+- Uses `config.settings.docker` and `env/.env.docker` over HTTP at `http://localhost:8000`.
+
+### Production Stack (PostgreSQL + Gunicorn + Nginx)
+```bash
+cp env/.env.production.example env/.env.production
+# Edit env/.env.production with strong SECRET_KEY, real ALLOWED_HOSTS, PostgreSQL credentials, and SMTP settings
+docker compose -f compose.yaml -f compose.prod.yaml up -d --build
+```
+- Uses `config.settings.production` (`DEBUG = False`, HTTPS/HSTS headers, `CompressedManifestStaticFilesStorage`) and Nginx on port `80` serving `/static/` and `/media/`.
 
 ---
 

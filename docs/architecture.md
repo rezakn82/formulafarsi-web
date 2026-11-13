@@ -10,10 +10,12 @@
 | :--- | :--- | :--- |
 | **Runtime & Packaging** | Python $\ge 3.13$, `uv` | Deterministic dependency management (`pyproject.toml` + `uv.lock`) and virtualenv execution |
 | **Web Framework** | Django 5.2 LTS (`>5.2,<5.3`) | URL routing, ORM, server-side template rendering, admin panel, and sitemaps |
+| **App Server & Static** | `gunicorn` (WSGI) + `whitenoise` | Multi-worker synchronous WSGI server and compressed manifest static asset serving |
+| **Containerization** | Docker + Docker Compose (`postgres:17-alpine`, `nginx:1.27-alpine`) | Multi-stage `uv` container build, PostgreSQL database, and production Nginx reverse proxy |
 | **Environment Loader** | `django-environ` + `python-dotenv` | Strict, typed environment variable loading via `config/env.py` |
 | **Rich-Text Editor** | `django-summernote` + `bleach` | Persian RTL WYSIWYG editor (`fa-IR`, Vazirmatn font) with HTML sanitization and media attachments |
 | **Image Handling** | `Pillow` | Image validation and storage for circuits, driver portraits, team logos/cars, and article covers |
-| **Database** | SQLite 3 (dev) / PostgreSQL (prod-ready) | Configured via `DATABASE_URL` in `config/settings.py` |
+| **Database** | SQLite 3 (dev/test) / PostgreSQL (prod) | Configured via `DATABASE_URL` in `config/settings/{local,production,test}.py` |
 | **Frontend UI** | Django Templates + Tailwind CSS CDN + Vazirmatn | Responsive dark-themed (`zinc-950`) RTL layout (`dir="rtl"`, `lang="fa"`) | jdatetime
 | **Dev & Testing Tooling** | `pytest`, `pytest-django`, `pytest-cov`, `pytest-xdist`, `factory-boy`, `faker`, `django-debug-toolbar`, `django-extensions`, `werkzeug` | Automated testing, parallel execution, SQL query profiling, and `runserver_plus` |
 
@@ -30,18 +32,33 @@ formulafarsi-web/
 │   └── racing/               # Circuit, Team, Driver, Standings (app_label: 'racing')
 ├── config/                   # Project configuration & entrypoints
 │   ├── env.py                # Strict Env(environ.Env) subclass and load_env_files()
-│   ├── settings.py           # Environment-driven Django settings
+│   ├── settings/             # Split settings package
+│   │   ├── __init__.py
+│   │   ├── base.py           # Shared apps, middleware (incl. WhiteNoise), templates, Summernote, Unfold
+│   │   ├── local.py          # Development defaults (DEBUG=True, SQLite, Debug Toolbar)
+│   │   ├── docker.py         # Container settings (inherits production with HTTP TLS defaults)
+│   │   ├── production.py     # Hardened production settings (HTTPS, HSTS, Postgres, WhiteNoise, logging)
+│   │   └── test.py           # Isolated, fast pytest configuration
+│   ├── tests.py              # Settings and environment loader tests
 │   ├── urls.py               # Root URLconf, Summernote, sitemaps, and Debug Toolbar
-│   ├── asgi.py               # ASGI entrypoint
-│   └── wsgi.py               # WSGI entrypoint
+│   ├── asgi.py               # ASGI entrypoint (defaults to config.settings.production)
+│   └── wsgi.py               # WSGI entrypoint (defaults to config.settings.production)
+├── docker/                   # Container runtime scripts & Nginx config
+│   ├── entrypoint.sh         # PostgreSQL wait loop, migrations, collectstatic, exec CMD
+│   └── nginx/default.conf    # Production Nginx reverse proxy for /static/, /media/, and Gunicorn
 ├── docs/                     # Technical documentation (kept in sync with code)
 │   ├── README.md             # Documentation index and maintenance rules
 │   ├── architecture.md       # System architecture (this file)
 │   ├── TODO.md               # Bug tracker and feature roadmap
 │   └── modules/              # Per-app deep-dive documentation
 ├── env/                      # Environment configuration files
-│   ├── .env.example          # Tracked template
-│   └── .env                  # Local environment secrets (git-ignored)
+│   ├── .env.example          # Shared base template
+│   ├── .env.local.example    # Local development template
+│   ├── .env.docker.example   # Docker Compose template
+│   ├── .env.production.example # Production deployment template
+│   ├── .env.local            # Local environment secrets (git-ignored)
+│   ├── .env.docker           # Docker environment secrets (git-ignored)
+│   └── .env.production       # Production environment secrets (git-ignored)
 ├── media/                    # Uploaded media files (git-ignored)
 ├── templates/                # Server-rendered RTL HTML templates
 │   ├── base.html             # Master layout, desktop nav, mobile drawer, footer
@@ -49,6 +66,9 @@ formulafarsi-web/
 │   ├── news/                 # Home page, article archive, and article detail views
 │   └── racing/               # Standings, driver list/detail, and team list/detail views
 ├── GEMINI.md                 # Project rules for Antigravity & Gemini
+├── Dockerfile                # Multi-stage uv + Python 3.13 + Gunicorn image
+├── compose.yaml              # Docker Compose stack (PostgreSQL 17 + Gunicorn web)
+├── compose.prod.yaml         # Production Compose override (adds Nginx + config.settings.production)
 ├── CONTRIBUTING.md           # Git commit and branch conventions
 ├── manage.py                 # Django management entrypoint
 ├── pyproject.toml            # Dependencies and pytest configuration
@@ -65,20 +85,26 @@ Because the short `label` is preserved, all database table names (`news_article`
 
 ---
 
-## 3. Environment Configuration (`config/env.py`)
+## 3. Environment Configuration & Split Settings (`config/env.py`, `config/settings/`)
 
-`config/settings.py` never reads `os.environ` directly or hardcodes secrets. Instead, it delegates to [`config/env.py`](../config/env.py):
+Settings modules never read `os.environ` directly or hardcode secrets. Instead, `config/settings/base.py` delegates to [`config/env.py`](../config/env.py):
 
-1. **`load_env_files(ENV_DIR)`** loads environment files from `env/` using `python-dotenv` with the following precedence (highest to lowest):
+1. **`resolve_django_env()` & `load_env_files(ENV_DIR)`** resolve the active profile (`DJANGO_ENV` in OS env $\rightarrow$ `DJANGO_SETTINGS_MODULE` suffix such as `.local`/`.production`/`.test` $\rightarrow$ `env/.env` `DJANGO_ENV` $\rightarrow$ `"local"`) and load files from `env/` with the following precedence (highest to lowest):
    - Real OS process environment variables (`os.environ`)
-   - Environment-specific file: `env/.env.<DJANGO_ENV>` (defaults to `env/.env.local` if present)
-   - Base file: `env/.env`
+   - Environment-specific file: `env/.env.<profile>` (e.g., `env/.env.local` or `env/.env.production`)
+   - Optional shared base file: `env/.env`
+   - *Test isolation:* When the resolved profile is `test` (`config.settings.test`), `env/.env` and `env/.env.local` are skipped so tests remain isolated (only optional `env/.env.test` is loaded).
 2. **`Env(environ.Env)`** provides strict, typed readers:
    - `env.required("SECRET_KEY")`: Raises `ImproperlyConfigured` if missing or blank.
    - `env.str(var, default=...)`: Reads literal string values without expanding leading `$` characters.
    - `env.bool(var, default=...)`: Accepts only valid boolean strings (`true`/`false`, `1`/`0`, `yes`/`no`, `on`/`off`) and raises `ImproperlyConfigured` on typos.
    - `env.list(var, default=...)`: Strips whitespace around items and drops empty segments.
    - `env.db("DATABASE_URL", default=...)`: Parses database connection URLs into Django `DATABASES` dictionaries.
+3. **Settings Modules:**
+   - `manage.py` defaults to `config.settings.local`.
+   - `config/wsgi.py` and `config/asgi.py` fail-safe to `config.settings.production` (`DEBUG = False`, required `ALLOWED_HOSTS` & `DATABASE_URL`, HTTPS/HSTS headers, WhiteNoise compressed manifest static files, SMTP, structured console logging).
+   - `config/settings/docker.py` inherits `production.py` for containerized PostgreSQL deployments with local-HTTP TLS defaults.
+   - `pyproject.toml` configures `pytest` to use `config.settings.test` (`MD5PasswordHasher`, `locmem` email).
 
 ---
 
@@ -88,7 +114,7 @@ Because the short `label` is preserved, all database table names (`news_article`
 flowchart TD
     subgraph Config ["config/"]
         URLS["config.urls"]
-        SETTINGS["config.settings"]
+        SETTINGS["config.settings.{base,local,production,test}"]
     end
 
     subgraph Apps ["apps/"]

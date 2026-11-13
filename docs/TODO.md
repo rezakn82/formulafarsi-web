@@ -34,5 +34,3 @@ This document tracks verified issues in the current codebase, missing test cover
   - Add `slug` fields to `Team` and `Circuit` so team URLs use `/racing/teams/<slug>/` (e.g. `/racing/teams/ferrari/`) instead of integer primary keys.
 - [ ] **Season Selector on Standings (`apps.racing`):**
   - Allow users to switch seasons via `?season=2025` on `/racing/standings/` to view historical championship results.
-- [ ] **Production Static & Media Serving:**
-  - Add `whitenoise` for compressed static file serving and `Dockerfile` / `compose.yaml` for containerized deployment with PostgreSQL.

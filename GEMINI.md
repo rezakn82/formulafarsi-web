@@ -12,11 +12,12 @@ FormulaFarsi is a Persian-language (RTL) Formula 1 and motorsport editorial, rac
   - **`apps.grandprix_calendar`** (`apps/grandprix_calendar/`): `Season`, `GrandPrix`, and weekend `Session` schedules (FP1, FP2, FP3, Sprint Shootout, Sprint, Qualifying, Main Race).
 - **`config/`**: Project configuration package.
   - `config/env.py`: Strict `Env(environ.Env)` wrapper and `load_env_files()` loader (`django-environ` + `python-dotenv`).
-  - `config/settings.py`: Environment-driven Django settings.
+  - `config/settings/`: Split Django settings (`base.py`, `local.py`, `docker.py`, `production.py`, `test.py`).
   - `config/urls.py`: Root URL configuration and sitemap routing.
 - **`env/`**: Environment variable files.
-  - `env/.env.example`: Tracked template for environment variables.
-  - `env/.env`: Local environment file (git-ignored).
+  - `env/.env.example`: Tracked shared base template.
+  - `env/.env.local.example`, `env/.env.docker.example` & `env/.env.production.example`: Tracked environment-specific templates.
+  - `env/.env.local`, `env/.env.docker` & `env/.env.production`: Environment secret files (git-ignored).
 - **`docs/`**: Project documentation (`docs/README.md`, `docs/architecture.md`, `docs/TODO.md`, and per-app pages in `docs/modules/<app_name>.md`).
 - **`templates/`**: Django HTML templates styled with **Tailwind CSS** and the **Vazirmatn** Persian font (`dir="rtl"`, `lang="fa"`).
 - **`.agent/skills/`**: Shared Antigravity/Gemini skills for the team.
@@ -63,8 +64,8 @@ Whenever you add a feature, fix a bug, or modify models, views, URLs, admin conf
    - Import project apps via the `apps.` prefix (e.g., `from apps.racing.models import Driver, Team`).
    - Keep `AppConfig.name = 'apps.<app_name>'` in `apps.py`. The app label remains `<app_name>` (`news`, `racing`, `grandprix_calendar`), so model string references (e.g., `'racing.Circuit'`, `'grandprix_calendar.Season'`) and URL namespaces (`news:...`, `racing:...`, `grandprix_calendar:...`) use the short label.
 3. **Environment Configuration:**
-   - Never hardcode secrets, hostnames, or database credentials in `config/settings.py`.
-   - Read environment variables through `env` in `config/settings.py` (defined via `config/env.py`) and document any new variables in `env/.env.example`.
+   - Never hardcode secrets, hostnames, or database credentials in `config/settings/`.
+   - Read environment variables through `env` in `config/settings/` (defined via `config/env.py`) and document any new variables in `env/.env.local.example` and/or `env/.env.production.example`.
 4. **Rich-Text Content (`django-summernote`):**
    - Rich-text fields use `django_summernote` (`SummernoteTextField` / `SummernoteModelAdmin`).
    - Ensure admin classes for rich-text models inherit from `SummernoteModelAdmin` and declare `summernote_fields`.
