@@ -32,9 +32,7 @@ This document tracks verified issues in the current codebase, missing test cover
   - Add `GrandPrixSitemap` and implement `GrandPrix.get_absolute_url()` so `/calendar/round-<n>/` pages are indexed in `/sitemap.xml`.
 - [ ] **Slug URLs for Teams & Circuits (`apps.racing`):**
   - Add `slug` fields to `Team` and `Circuit` so team URLs use `/racing/teams/<slug>/` (e.g. `/racing/teams/ferrari/`) instead of integer primary keys.
-- [ ] **Season Selector on Standings & Calendar (`apps.racing` & `apps.grandprix_calendar`):**
-  - Allow users to switch seasons via `?season=2025` on `/racing/standings/` and `/calendar/` to view historical championship results and calendars.
-- [ ] **Persian (Jalali / Solar Hijri) Date Filter:**
-  - Add `jdatetime` or custom template filters to display Persian Solar Hijri dates alongside Gregorian dates for news articles and race sessions.
+- [ ] **Season Selector on Standings (`apps.racing`):**
+  - Allow users to switch seasons via `?season=2025` on `/racing/standings/` to view historical championship results.
 - [ ] **Production Static & Media Serving:**
   - Add `whitenoise` for compressed static file serving and `Dockerfile` / `compose.yaml` for containerized deployment with PostgreSQL.

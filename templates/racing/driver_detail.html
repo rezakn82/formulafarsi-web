@@ -36,7 +36,7 @@
                 </div>
                 <div class="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
                     <span class="text-zinc-500 block">تاریخ تولد</span>
-                    <span class="text-zinc-200 font-bold mt-1 block font-mono">{{ driver.date_of_birth|date:"Y/m/d" }}</span>
+                    <span class="text-zinc-200 font-bold mt-1 block font-mono">{{ driver.date_of_birth|jalali_date:"j F Y" }}</span>
                 </div>
             </div>
         </div>
@@ -76,7 +76,7 @@
                 <img src="{{ art.featured_image.url }}" alt="{{ art.title }}" class="rounded-lg aspect-video object-cover mb-3 bg-zinc-800">
                 {% endif %}
                 <h5 class="text-xs font-bold text-white group-hover:text-red-400 transition line-clamp-2">{{ art.title }}</h5>
-                <span class="text-[10px] text-zinc-500 mt-3">{{ art.created_at|date:"Y/m/d" }}</span>
+                <span class="text-[10px] text-zinc-500 mt-3">{{ art.created_at|jalali_date:"j F Y" }}</span>
             </a>
             {% endfor %}
         </div>

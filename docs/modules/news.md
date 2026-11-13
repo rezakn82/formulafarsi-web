@@ -61,6 +61,7 @@ Represents a news article with rich-text HTML body and relational tags.
 | [`apps/news/admin.py`](../../apps/news/admin.py) | Registers `CategoryAdmin` and `ArticleAdmin` (`SummernoteModelAdmin`). |
 | [`apps/news/sitemaps.py`](../../apps/news/sitemaps.py) | Defines `ArticleSitemap`, `StaticViewSitemap`, `DriverSitemap`, and `TeamSitemap`. |
 | [`apps/news/tests.py`](../../apps/news/tests.py) | Test module for `apps.news`. |
+| [`apps/news/templatetags/jalali_tags.py`](../../apps/news/templatetags/jalali_tags.py) | Converting Gregorian dates to Solar (Jalali) dates. |
 
 ---
 

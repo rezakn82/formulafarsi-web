@@ -75,7 +75,7 @@
             </div>
             <div class="px-5 pb-5 text-xs text-zinc-500 flex justify-between items-center border-t border-zinc-800/60 pt-3">
                 <span>توسط {{ featured_article.author.get_full_name|default:featured_article.author.username }}</span>
-                <span>{{ featured_article.created_at|date:"Y/m/d" }}</span>
+                <span>{{ featured_article.created_at|jalali_date:"j F Y" }}</span>
             </div>
         </div>
 
@@ -93,7 +93,7 @@
                         {% endif %}
                         <h5 class="text-sm font-semibold text-white group-hover:text-red-400 transition line-clamp-2 mt-1">{{ item.title }}</h5>
                     </div>
-                    <span class="text-[11px] text-zinc-500 mt-2">{{ item.created_at|date:"Y/m/d" }}</span>
+                    <span class="text-[11px] text-zinc-500 mt-2">{{ item.created_at|jalali_date:"j F Y" }}</span>
                 </div>
             </a>
             {% empty %}
@@ -159,7 +159,7 @@
             <!-- امتیاز کل -->
             <div class="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs">
                 <span class="text-zinc-500 text-[11px]">امتیاز</span>
-                <span class="font-mono font-black text-white text-sm">{{ item.points }}</span>
+                <span class="font-mono font-black text-white text-sm">{{ item.points|floatformat }}</span>
             </div>
         </a>
         {% endfor %}

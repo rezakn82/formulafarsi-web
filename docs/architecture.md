@@ -14,7 +14,7 @@
 | **Rich-Text Editor** | `django-summernote` + `bleach` | Persian RTL WYSIWYG editor (`fa-IR`, Vazirmatn font) with HTML sanitization and media attachments |
 | **Image Handling** | `Pillow` | Image validation and storage for circuits, driver portraits, team logos/cars, and article covers |
 | **Database** | SQLite 3 (dev) / PostgreSQL (prod-ready) | Configured via `DATABASE_URL` in `config/settings.py` |
-| **Frontend UI** | Django Templates + Tailwind CSS CDN + Vazirmatn | Responsive dark-themed (`zinc-950`) RTL layout (`dir="rtl"`, `lang="fa"`) |
+| **Frontend UI** | Django Templates + Tailwind CSS CDN + Vazirmatn | Responsive dark-themed (`zinc-950`) RTL layout (`dir="rtl"`, `lang="fa"`) | jdatetime
 | **Dev & Testing Tooling** | `pytest`, `pytest-django`, `pytest-cov`, `pytest-xdist`, `factory-boy`, `faker`, `django-debug-toolbar`, `django-extensions`, `werkzeug` | Automated testing, parallel execution, SQL query profiling, and `runserver_plus` |
 
 ---

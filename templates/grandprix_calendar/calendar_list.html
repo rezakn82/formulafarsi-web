@@ -32,7 +32,7 @@
     <!-- گرید کارت‌های گرندپری -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {% for gp in grands_prix %}
-        <a href="{% url 'grandprix_calendar:grandprix_detail' gp.round_number %}"?season={{ season.year }}
+        <a href="{% url 'grandprix_calendar:grandprix_detail' gp.round_number %}?season={{ season.year }}"
            class="bg-zinc-900/70 border border-zinc-800/80 hover:border-zinc-700 rounded-2xl p-5 transition flex flex-col justify-between group relative overflow-hidden">
             
             <!-- وضعیت گرندپری (برگزار شده / جاری / آینده) -->
@@ -63,7 +63,7 @@
 
             <!-- تاریخ آخر هفته -->
             <div class="border-t border-zinc-800/80 pt-3 flex items-center justify-between text-xs text-zinc-400">
-                <span>{{ gp.start_date|date:"j M" }} تا {{ gp.end_date|date:"j M Y" }}</span>
+                <span>{{ gp.start_date|jalali_date:"j F" }} تا {{ gp.end_date|jalali_date:"j F Y" }}</span>
                 <span class="text-red-500 font-semibold group-hover:translate-x-[-4px] transition-transform">مشاهده برنامه ←</span>
             </div>
         </a>

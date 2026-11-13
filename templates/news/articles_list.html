@@ -82,7 +82,7 @@
 
             <div class="px-5 py-3 border-t border-zinc-800/80 bg-zinc-950/40 flex items-center justify-between text-[11px] text-zinc-500">
                 <span>{{ article.author.get_full_name|default:article.author.username }}</span>
-                <span>{{ article.created_at|date:"Y/m/d" }}</span>
+                <span>{{ article.created_at|jalali_date:"j F Y" }}</span>
             </div>
         </a>
         {% empty %}

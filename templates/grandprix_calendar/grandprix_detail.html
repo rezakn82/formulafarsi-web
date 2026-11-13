@@ -19,7 +19,7 @@
         </div>
         <div class="text-left md:text-right bg-zinc-950/50 border border-zinc-800/80 p-4 rounded-xl">
             <span class="text-[11px] text-zinc-500 block">تاریخ آخر هفته:</span>
-            <span class="text-sm font-bold text-zinc-200 mt-1 block">{{ grand_prix.start_date|date:"j F" }} - {{ grand_prix.end_date|date:"j F Y" }}</span>
+            <span class="text-sm font-bold text-zinc-200 mt-1 block">{{ grand_prix.start_date|jalali_date:"j F" }} تا {{ grand_prix.end_date|jalali_date:"j F Y" }}</span>
         </div>
     </div>
 
@@ -80,7 +80,7 @@
                             <td class="py-3.5 px-4 text-center font-mono font-bold">
                                 {% if res.status == 'finished' %}
                                     <span class="{% if res.position == 1 %}text-amber-400 text-base{% elif res.position == 2 %}text-zinc-300 text-base{% elif res.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
-                                        {{ res.position }}
+                                        {{ res.position|floatformat }}
                                     </span>
                                 {% else %}
                                     <span class="text-[11px] bg-red-950/60 text-red-400 border border-red-800/50 px-2 py-0.5 rounded uppercase">
@@ -123,7 +123,7 @@
 
                             {% if session.session_type == 'race' or session.session_type == 'sprint' %}
                                 <td class="py-3.5 px-4 text-left font-mono font-black text-white">
-                                    {% if res.points > 0 %}+{{ res.points }}{% else %}0{% endif %}
+                                    {% if res.points > 0 %}+{{ res.points|floatformat }}{% else %}0{% endif %}
                                 </td>
                             {% endif %}
                         </tr>
@@ -151,7 +151,7 @@
                     <span class="font-bold text-zinc-200">{{ session.get_session_type_display }}</span>
                 </div>
                 <div class="flex items-center gap-4 text-xs md:text-sm font-mono text-zinc-400">
-                    <span>{{ session.start_time|date:"l j F" }}</span>
+                    <span>{{ session.start_time|jalali_date:"l j F" }}</span>
                     <span class="bg-zinc-800 text-white px-2.5 py-1 rounded-md font-bold">{{ session.start_time|date:"H:i" }}</span>
                 </div>
             </div>
