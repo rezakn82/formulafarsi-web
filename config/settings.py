@@ -25,6 +25,7 @@ env = Env()
 # CORE SECURITY & APPLICATION
 # ==============================================================================
 SECRET_KEY = env.required("SECRET_KEY")
+ADMIN_URL = env.str("ADMIN_URL", default="admin/")
 
 DEBUG = env.bool("DEBUG", default=False)
 

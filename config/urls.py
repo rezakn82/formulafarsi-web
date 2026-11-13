@@ -36,7 +36,7 @@ sitemaps = {
 }
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path(settings.ADMIN_URL, admin.site.urls),
     path('', include('apps.news.urls')),
     path('calendar/', include('apps.grandprix_calendar.urls')),
     path('racing/', include('apps.racing.urls')),

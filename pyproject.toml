@@ -9,8 +9,10 @@ dependencies = [
     "django-environ>=0.14.0",
     "django-summernote>=0.8.20.0",
     "django-unfold>=0.110.1",
+    "gunicorn>=27.0.1",
     "jdatetime>=6.1.1",
     "pillow>=13.0.0",
+    "psycopg[binary]>=3.3.9",
     "python-dotenv>=1.2.4",
 ]
 
