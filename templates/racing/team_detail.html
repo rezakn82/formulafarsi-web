@@ -25,7 +25,7 @@
         </div>
 
         <!-- مشخصات فنی تیم -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
             <div class="bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">مقر اصلی</span>
                 <span class="text-sm font-bold text-white mt-1 block">{{ team.base }}</span>
@@ -37,10 +37,6 @@
             <div class="bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">پیشرانه</span>
                 <span class="text-sm font-bold text-white mt-1 block">{{ team.power_unit }}</span>
-            </div>
-            <div class="bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800 text-center flex flex-col items-center justify-center">
-                <span class="text-xs text-zinc-500 block">رنگ سازمانی</span>
-                <span class="w-6 h-6 rounded-full border border-zinc-600 mt-1 block" style="background-color: {{ team.color_code }};"></span>
             </div>
         </div>
 

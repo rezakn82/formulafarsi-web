@@ -1,6 +1,19 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
 from .models import Season, GrandPrix, Session, SessionResult
+from datetime import timezone as dt_timezone
+from django.utils import timezone
+
+class UTCSessionAdminMixin:
+    """تفسیر و نمایش فیلد زمان شروع سشن‌ها در پنل ادمین بر اساس ساعت جهانی (UTC)."""
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        with timezone.override(dt_timezone.utc):
+            return super().changeform_view(request, object_id, form_url, extra_context)
+
+    def changelist_view(self, request, extra_context=None):
+        with timezone.override(dt_timezone.utc):
+            return super().changelist_view(request, extra_context)
 
 class SessionInline(TabularInline):
     model = Session

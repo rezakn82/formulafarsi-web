@@ -52,7 +52,7 @@
                 <table class="w-full text-right text-sm">
                     <thead class="bg-zinc-950/90 text-zinc-400 text-xs border-b border-zinc-800">
                         <tr>
-                            <th class="py-3.5 px-4 text-center w-14">رتبه</th>
+                            <th class="py-3.5 px-4 text-center w-20">رتبه</th>
                             <th class="py-3.5 px-4">راننده</th>
                             <th class="py-3.5 px-4">تیم</th>
 
@@ -77,13 +77,13 @@
                         {% for res in session.results.all %}
                         <tr class="hover:bg-zinc-800/40 transition">
                             <!-- ستون رتبه یا وضعیت DNF/DSQ -->
-                            <td class="py-3.5 px-4 text-center font-mono font-bold">
+                            <td class="py-3.5 px-4 text-center font-mono font-bold whitespace-nowrap">
                                 {% if res.status == 'finished' %}
                                     <span class="{% if res.position == 1 %}text-amber-400 text-base{% elif res.position == 2 %}text-zinc-300 text-base{% elif res.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
                                         {{ res.position|floatformat }}
                                     </span>
                                 {% else %}
-                                    <span class="text-[11px] bg-red-950/60 text-red-400 border border-red-800/50 px-2 py-0.5 rounded uppercase">
+                                    <span class="inline-block whitespace-nowrap text-[11px] bg-red-950/60 text-red-400 border border-red-800/50 px-2.5 py-0.5 rounded uppercase">
                                         {{ res.status }}
                                     </span>
                                 {% endif %}

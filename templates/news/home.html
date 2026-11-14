@@ -4,39 +4,71 @@
 
 {% block content %}
 
-<!-- ویجت گرندپری و سشن بعدی -->
-{% if next_session %}
-<div class="mb-10 bg-gradient-to-r from-zinc-900 via-zinc-900 to-red-950/40 border border-zinc-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-    <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black italic pointer-events-none">F1</div>
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-            <div class="flex items-center gap-2 mb-2">
-                <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
-                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">ایستگاه بعدی:</span>
-            </div>
-            <h2 class="text-2xl md:text-3xl font-extrabold text-white">{{ next_session.grand_prix.name }}</h2>
-            <p class="text-zinc-400 text-sm mt-1">
-                {{ next_session.get_session_type_display }} • پیست {{ next_session.grand_prix.circuit.name }} ({{ next_session.grand_prix.circuit.country }})
-            </p>
-        </div>
+<style>
+    @keyframes border-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .next-session-border {
+        position: relative;
+        background-color: #27272a; /* رنگ ثابت کادر (zinc-800) در بخش‌هایی که نور نیست */
+    }
+    .next-session-border::before {
+        content: "";
+        position: absolute;
+        inset: -150%;
+        background: conic-gradient(
+            from 0deg,
+            transparent 0%,
+            transparent 78%,
+            #a1a1aa 88%,
+            #ffffff 95%,
+            #a1a1aa 98%,
+            transparent 100%
+        );
+        animation: border-spin 4s linear infinite;
+        z-index: 0;
+    }
+</style>
 
-        <!-- تایمر معکوس -->
-        <div class="flex items-center gap-3 text-center" id="countdown-box" data-time="{{ next_session.start_time|date:'c' }}"> 
-            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                <span id="seconds" class="text-xl font-black text-red-500">00</span>
-                <span class="block text-[10px] text-zinc-400">ثانیه</span>
-            </div>
-            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                <span id="minutes" class="text-xl font-black text-white">00</span>
-                <span class="block text-[10px] text-zinc-400">دقیقه</span>
-            </div>
-            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                <span id="hours" class="text-xl font-black text-white">00</span>
-                <span class="block text-[10px] text-zinc-400">ساعت</span>
-            </div>
-            <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                <span id="days" class="text-xl font-black text-white">00</span>
-                <span class="block text-[10px] text-zinc-400">روز</span>
+<!-- ویجت گرندپری و سشن بعدی (نور قرمز صرفاً روی خط دور کادر) -->
+{% if next_session %}
+<div class="mb-10 p-[2px] rounded-2xl overflow-hidden shadow-xl next-session-border">
+    <!-- لایه bg-zinc-950 کاملاً مات است و اجازه نمی‌دهد نور به داخل کادر نفوذ کند -->
+    <div class="bg-zinc-950 rounded-[14px] relative z-10 overflow-hidden">
+        <div class="bg-gradient-to-r from-zinc-900 via-zinc-900 to-red-950/40 p-6 relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black italic pointer-events-none">F1</div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+                        <span class="text-xs uppercase font-bold text-red-500 tracking-wider">ایستگاه بعدی:</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-white">{{ next_session.grand_prix.name }}</h2>
+                    <p class="text-zinc-400 text-sm mt-1">
+                        {{ next_session.get_session_type_display }} • پیست {{ next_session.grand_prix.circuit.name }} ({{ next_session.grand_prix.circuit.country }})
+                    </p>
+                </div>
+
+                <!-- تایمر معکوس -->
+                <div class="flex items-center gap-3 text-center" id="countdown-box" data-time="{{ next_session.start_time|date:'c' }}"> 
+                    <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
+                        <span id="seconds" class="text-xl font-black text-red-500">00</span>
+                        <span class="block text-[10px] text-zinc-400">ثانیه</span>
+                    </div>
+                    <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
+                        <span id="minutes" class="text-xl font-black text-white">00</span>
+                        <span class="block text-[10px] text-zinc-400">دقیقه</span>
+                    </div>
+                    <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
+                        <span id="hours" class="text-xl font-black text-white">00</span>
+                        <span class="block text-[10px] text-zinc-400">ساعت</span>
+                    </div>
+                    <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
+                        <span id="days" class="text-xl font-black text-white">00</span>
+                        <span class="block text-[10px] text-zinc-400">روز</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -108,15 +140,15 @@
     </div>
     {% endif %}
 </div>
-{% if top_drivers %}
-<section class="mt-12 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
-    <div class="flex items-center justify-between border-b border-zinc-800 pb-4 mb-6">
+{% if top_drivers or top_teams %}
+<section class="mt-12 space-y-6">
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
         <div>
             <div class="flex items-center gap-2 mb-1">
                 <span class="w-2 h-2 rounded-full bg-red-600"></span>
                 <span class="text-xs uppercase font-bold text-red-500 tracking-wider">STANDINGS LEADERS</span>
             </div>
-            <h3 class="text-xl font-black text-white">۵ راننده برتر جدول مسابقات (فصل {{ season.year }})</h3>
+            <h3 class="text-xl font-black text-white">برترین‌های جدول قهرمانی (فصل {{ season.year }})</h3>
         </div>
         <a href="{% url 'racing:standings' %}" class="text-xs font-bold text-red-500 hover:text-red-400 transition flex items-center gap-1">
             <span>مشاهده جدول کامل</span>
@@ -124,45 +156,104 @@
         </a>
     </div>
 
-    <!-- گرید ۵ راننده برتر -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {% for item in top_drivers %}
-        <a href="{% url 'racing:driver_detail' item.driver.code %}" 
-           class="bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 rounded-xl p-4 flex flex-col justify-between transition group relative overflow-hidden">
-            
-            <!-- نوار رنگ تیم -->
-            <div class="h-1 w-full absolute top-0 right-0 left-0" style="background-color: {{ item.driver.team.color_code|default:'#52525b' }};"></div>
-
-            <div>
-                <!-- رتبه و شماره راننده -->
-                <div class="flex items-center justify-between mb-2 pt-1">
-                    <span class="text-lg font-black font-mono {% if item.position == 1 %}text-amber-400{% elif item.position == 2 %}text-zinc-300{% elif item.position == 3 %}text-amber-600{% else %}text-zinc-500{% endif %}">
-                        P{{ item.position }}
-                    </span>
-                    <span class="text-[11px] text-zinc-500 font-mono">#{{ item.driver.permanent_number }}</span>
-                </div>
-
-                <!-- پرتره راننده -->
-                <div class="aspect-square bg-zinc-900/80 rounded-lg overflow-hidden flex items-end justify-center mb-3 border border-zinc-800/80">
-                    {% if item.driver.portrait %}
-                    <img src="{{ item.driver.portrait.url }}" alt="{{ item.driver.full_name }}" class="h-full object-contain group-hover:scale-105 transition duration-300">
-                    {% else %}
-                    <span class="text-2xl font-mono text-zinc-700 font-black mb-4">{{ item.driver.code }}</span>
-                    {% endif %}
-                </div>
-
-                <!-- نام راننده و تیم -->
-                <h4 class="text-sm font-bold text-white group-hover:text-red-400 transition truncate">{{ item.driver.full_name }}</h4>
-                <p class="text-[11px] text-zinc-400 truncate mt-0.5">{{ item.driver.team.name|default:"آزاد" }}</p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- جدول عمودی ۵ راننده برتر -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
+                <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                    <span class="w-1.5 h-4 bg-red-600 rounded-sm"></span>
+                    ۵ راننده برتر
+                </h4>
+                <a href="{% url 'racing:standings' %}" class="text-[11px] text-zinc-400 hover:text-white transition">جدول رانندگان ←</a>
             </div>
-
-            <!-- امتیاز کل -->
-            <div class="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs">
-                <span class="text-zinc-500 text-[11px]">امتیاز</span>
-                <span class="font-mono font-black text-white text-sm">{{ item.points|floatformat }}</span>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-sm">
+                    <thead class="bg-zinc-950/80 text-zinc-400 text-xs border-b border-zinc-800">
+                        <tr>
+                            <th class="py-3 px-4 text-center w-14">رتبه</th>
+                            <th class="py-3 px-4">راننده</th>
+                            <th class="py-3 px-4">تیم</th>
+                            <th class="py-3 px-4 text-left font-mono">امتیاز</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-800/80 font-medium">
+                        {% for item in top_drivers %}
+                        <tr class="hover:bg-zinc-800/40 transition">
+                            <td class="py-3.5 px-4 text-center font-bold font-mono {% if item.position == 1 %}text-amber-400 text-base{% elif item.position == 2 %}text-zinc-300 text-base{% elif item.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
+                                {{ item.position }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <a href="{% url 'racing:driver_detail' item.driver.code %}" class="flex items-center gap-2.5 group">
+                                    <span class="w-1.5 h-5 rounded-full" style="background-color: {{ item.driver.team.color_code|default:'#52525b' }};"></span>
+                                    {% if item.driver.portrait %}
+                                    <img src="{{ item.driver.portrait.url }}" alt="{{ item.driver.full_name }}" class="w-7 h-7 rounded-full object-cover bg-zinc-950 border border-zinc-700">
+                                    {% endif %}
+                                    <span class="text-white font-bold group-hover:text-red-400 transition">{{ item.driver.full_name }}</span>
+                                </a>
+                            </td>
+                            <td class="py-3.5 px-4 text-xs text-zinc-400">
+                                {{ item.driver.team.name|default:"آزاد" }}
+                            </td>
+                            <td class="py-3.5 px-4 text-left font-mono font-black text-white">
+                                {{ item.points|floatformat }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="py-8 text-center text-zinc-500 text-xs">اطلاعاتی ثبت نشده است.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        </a>
-        {% endfor %}
+        </div>
+
+        <!-- جدول عمودی ۵ تیم برتر -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
+                <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                    <span class="w-1.5 h-4 bg-red-600 rounded-sm"></span>
+                    ۵ تیم برتر (سازندگان)
+                </h4>
+                <a href="{% url 'racing:standings' %}" class="text-[11px] text-zinc-400 hover:text-white transition">جدول تیم‌ها ←</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-sm">
+                    <thead class="bg-zinc-950/80 text-zinc-400 text-xs border-b border-zinc-800">
+                        <tr>
+                            <th class="py-3 px-4 text-center w-14">رتبه</th>
+                            <th class="py-3 px-4">تیم</th>
+                            <th class="py-3 px-4 text-left font-mono">امتیاز</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-800/80 font-medium">
+                        {% for item in top_teams %}
+                        <tr class="hover:bg-zinc-800/40 transition">
+                            <td class="py-3.5 px-4 text-center font-bold font-mono {% if item.position == 1 %}text-amber-400 text-base{% elif item.position == 2 %}text-zinc-300 text-base{% elif item.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
+                                {{ item.position }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <a href="{% url 'racing:team_detail' item.team.pk %}" class="flex items-center gap-2.5 group">
+                                    <span class="w-1.5 h-5 rounded-full" style="background-color: {{ item.team.color_code|default:'#52525b' }};"></span>
+                                    {% if item.team.logo %}
+                                    <img src="{{ item.team.logo.url }}" alt="{{ item.team.name }}" class="h-5 max-w-[36px] object-contain">
+                                    {% endif %}
+                                    <span class="text-white font-bold group-hover:text-red-400 transition">{{ item.team.name }}</span>
+                                </a>
+                            </td>
+                            <td class="py-3.5 px-4 text-left font-mono font-black text-white">
+                                {{ item.points|floatformat }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="py-8 text-center text-zinc-500 text-xs">اطلاعاتی ثبت نشده است.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </section>
 {% endif %}

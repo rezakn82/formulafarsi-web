@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
 from apps.grandprix_calendar.models import GrandPrix, Season, Session
-from apps.racing.models import Driver, DriverStanding, Team
+from apps.racing.models import Driver, DriverStanding, Team, TeamStanding
 
 from .models import Article, Category
 
@@ -13,26 +13,40 @@ def home_view(request):
     now = timezone.now()
 
     # ۱. نزدیک‌ترین سشن آینده
-    next_session = Session.objects.filter(start_time__gte=now).select_related('grand_prix', 'grand_prix__circuit').order_by('start_time').first()
+    next_session = (
+        Session.objects.filter(start_time__gte=now)
+        .select_related('grand_prix', 'grand_prix__circuit')
+        .order_by('start_time')
+        .first()
+    )
 
     # ۲. آخرین اخبار منتشر شده
     articles = Article.objects.filter(status='published').select_related('category', 'author')[:6]
     featured_article = articles[0] if articles else None
     recent_articles = articles[1:] if len(articles) > 1 else []
 
-    # ۳. دریافت فصل جاری و ۵ راننده برتر
+    # ۳. دریافت فصل جاری و ۵ راننده و ۵ تیم برتر
     current_season = Season.objects.filter(is_current=True).first() or Season.objects.order_by('-year').first()
     top_drivers = []
+    top_teams = []
     if current_season:
-        top_drivers = DriverStanding.objects.filter(
-            season=current_season
-        ).select_related('driver', 'driver__team').order_by('position')[:5]
+        top_drivers = (
+            DriverStanding.objects.filter(season=current_season)
+            .select_related('driver', 'driver__team')
+            .order_by('position')[:5]
+        )
+        top_teams = (
+            TeamStanding.objects.filter(season=current_season)
+            .select_related('team')
+            .order_by('position')[:5]
+        )
 
     context = {
         'next_session': next_session,
         'featured_article': featured_article,
         'recent_articles': recent_articles,
         'top_drivers': top_drivers,
+        'top_teams': top_teams,
         'season': current_season,
     }
     return render(request, 'news/home.html', context)

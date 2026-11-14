@@ -1,3 +1,5 @@
+from django.db.models import OuterRef, Subquery
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, render
 
 from apps.grandprix_calendar.models import Season
@@ -5,11 +7,33 @@ from apps.grandprix_calendar.models import Season
 from .models import Driver, DriverStanding, Team, TeamStanding
 
 
-# ۱. لیست تمام رانندگان
-def drivers_list_view(request):
-    drivers = Driver.objects.select_related('team').order_by('team__name', 'permanent_number')
-    return render(request, 'racing/drivers_list.html', {'drivers': drivers})
+def _get_current_season():
+    return Season.objects.filter(is_current=True).first() or Season.objects.order_by('-year').first()
 
+# ۱. لیست تمام رانندگان (مرتب‌شده بر اساس جدول رده‌بندی تیمی فصل جاری)
+def drivers_list_view(request):
+    current_season = _get_current_season()
+    drivers = Driver.objects.select_related('team')
+
+    if current_season:
+        team_pos_subquery = TeamStanding.objects.filter(
+            season=current_season,
+            team=OuterRef('team_id'),
+        ).values('position')[:1]
+
+        driver_pos_subquery = DriverStanding.objects.filter(
+            season=current_season,
+            driver=OuterRef('pk'),
+        ).values('position')[:1]
+
+        drivers = drivers.annotate(
+            team_standing_pos=Coalesce(Subquery(team_pos_subquery), 999),
+            driver_standing_pos=Coalesce(Subquery(driver_pos_subquery), 999),
+        ).order_by('team_standing_pos', 'driver_standing_pos', 'permanent_number')
+    else:
+        drivers = drivers.order_by('team__name', 'permanent_number')
+
+    return render(request, 'racing/drivers_list.html', {'drivers': drivers})
 
 # ۲. پروفایل تکی راننده
 def driver_detail_view(request, code):
@@ -34,9 +58,23 @@ def driver_detail_view(request, code):
     return render(request, 'racing/driver_detail.html', context)
 
 
-# ۳. لیست تمام تیم‌ها
+# ۳. لیست تمام تیم‌ها (مرتب‌شده بر اساس جدول رده‌بندی تیمی فصل جاری)
 def teams_list_view(request):
-    teams = Team.objects.prefetch_related('drivers').order_by('name')
+    current_season = _get_current_season()
+    teams = Team.objects.prefetch_related('drivers')
+
+    if current_season:
+        team_pos_subquery = TeamStanding.objects.filter(
+            season=current_season,
+            team=OuterRef('pk'),
+        ).values('position')[:1]
+
+        teams = teams.annotate(
+            team_standing_pos=Coalesce(Subquery(team_pos_subquery), 999),
+        ).order_by('team_standing_pos', 'name')
+    else:
+        teams = teams.order_by('name')
+
     return render(request, 'racing/teams_list.html', {'teams': teams})
 
 

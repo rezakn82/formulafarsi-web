@@ -42,7 +42,7 @@
                 <tbody class="divide-y divide-zinc-800/80 font-medium">
                     {% for item in driver_standings %}
                     <tr class="hover:bg-zinc-800/40 transition">
-                        <td class="py-4 px-4 text-center font-bold font-mono {% if item.position <= 3 %}text-red-500 text-base{% else %}text-zinc-400{% endif %}">
+                        <td class="py-4 px-4 text-center font-bold font-mono {% if item.position == 1 %}text-amber-400 text-base{% elif item.position == 2 %}text-zinc-300 text-base{% elif item.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
                             {{ item.position }}
                         </td>
                         <td class="py-4 px-4">
@@ -91,7 +91,7 @@
                 <tbody class="divide-y divide-zinc-800/80 font-medium">
                     {% for item in team_standings %}
                     <tr class="hover:bg-zinc-800/40 transition">
-                        <td class="py-4 px-4 text-center font-bold font-mono {% if item.position <= 3 %}text-red-500 text-base{% else %}text-zinc-400{% endif %}">
+                        <td class="py-4 px-4 text-center font-bold font-mono {% if item.position == 1 %}text-amber-400 text-base{% elif item.position == 2 %}text-zinc-300 text-base{% elif item.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
                             {{ item.position }}
                         </td>
                         <td class="py-4 px-4">
