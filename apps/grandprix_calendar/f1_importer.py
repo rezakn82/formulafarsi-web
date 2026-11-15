@@ -1,4 +1,5 @@
 import re
+import time
 from decimal import Decimal, InvalidOperation
 
 import httpx
@@ -12,9 +13,21 @@ DEFAULT_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/131.0.0.0 Safari/537.36"
+        "Chrome/133.0.0.0 Safari/537.36"
     ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Cache-Control": "no-cache",
+    "Pragma": "no-cache",
+    "Sec-Ch-Ua": '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+    "Sec-Ch-Ua-Mobile": "?0",
+    "Sec-Ch-Ua-Platform": '"Windows"',
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+    "Upgrade-Insecure-Requests": "1",
 }
 
 
@@ -38,13 +51,11 @@ def _parse_decimal(val: str) -> Decimal:
 
 
 def _match_driver(no_text: str, driver_cell_text: str, drivers_by_num: dict, drivers_by_code: dict):
-    # ۱. تطبیق بر اساس شماره راننده (دقیق‌ترین روش در جداول رسمی F1)
     if no_text and no_text.isdigit():
         drv = drivers_by_num.get(int(no_text))
         if drv:
             return drv
 
-    # ۲. تطبیق بر اساس کد ۳ حرفی در انتهای نام راننده (مثل Max Verstappen VER)
     tokens = _clean(driver_cell_text).split(" ")
     if tokens:
         last_token = re.sub(r"[^A-Za-z]", "", tokens[-1]).upper()
@@ -52,34 +63,48 @@ def _match_driver(no_text: str, driver_cell_text: str, drivers_by_num: dict, dri
             return drivers_by_code[last_token]
 
     for code, drv in drivers_by_code.items():
-        if code in driver_cell_text.upper():
+        if re.search(rf"\b{re.escape(code)}\b", driver_cell_text.upper()):
             return drv
 
     return None
 
 
+def _fetch_html_with_retry(url: str) -> str:
+    last_exc = None
+    for attempt in range(3):
+        try:
+            with httpx.Client(
+                headers=DEFAULT_HEADERS,
+                follow_redirects=True,
+                timeout=25.0,
+                http2=False,
+            ) as client:
+                resp = client.get(url.strip())
+                resp.raise_for_status()
+                return resp.text
+        except Exception as exc:
+            last_exc = exc
+            time.sleep(1.5 * (attempt + 1))
+    raise RuntimeError(
+        f"سایت formula1.com اتصال سرور را مسدود کرد ({last_exc}). "
+        "لطفاً از کادر «کد HTML یا متن کپی‌شده جدول» در زیر استفاده کنید."
+    )
+
+
 @transaction.atomic
 def import_f1_session_results(session: Session, url: str = "", raw_html: str = "") -> tuple[int, list[str]]:
-    """
-    دریافت صفحه نتایج از سایت رسمی formula1.com (یا HTML کپی‌شده) و ثبت خودکار SessionResult.
-    برمی‌گرداند: (تعداد ردیف‌های ثبت‌شده, لیست هشدارها برای راننده‌های یافت‌نشده)
-    """
-    html_content = raw_html.strip()
+    html_content = (raw_html or "").strip()
     if not html_content and url:
-        with httpx.Client(headers=DEFAULT_HEADERS, follow_redirects=True, timeout=20.0) as client:
-            resp = client.get(url.strip())
-            resp.raise_for_status()
-            html_content = resp.text
+        html_content = _fetch_html_with_retry(url)
 
     if not html_content:
-        raise ValueError("آدرس URL یا کد HTML وارد نشده است.")
+        raise ValueError("آدرس URL یا متن/HTML جدول وارد نشده است.")
 
     soup = BeautifulSoup(html_content, "html.parser")
     table = soup.find("table")
     if not table:
-        raise ValueError("جدولی در این صفحه یافت نشد. از صحت لینک نتیجه جلسه در formula1.com مطمئن شوید.")
+        raise ValueError("تگ <table> در ورودی یافت نشد. لطفاً کل کد HTML صفحه یا سورس جدول را وارد کنید.")
 
-    # استخراج نام ستون‌ها از thead
     headers = [_clean(th.get_text()).lower() for th in table.select("thead th")]
     rows = table.select("tbody tr")
     if not rows:

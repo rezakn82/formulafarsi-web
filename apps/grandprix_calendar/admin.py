@@ -22,9 +22,15 @@ class UTCSessionAdminMixin:
 class SessionAdminForm(forms.ModelForm):
     f1_official_url = forms.URLField(
         required=False,
-        label="ایمپورت خودکار از لینک Formula1.com",
-        help_text="لینک صفحه نتیجه این سشن در سایت رسمی formula1.com را وارد کرده و ذخیره را بزنید تا جدول نتایج خودکار پر شود.",
+        label="روش اول: ایمپورت از لینک Formula1.com",
+        help_text="لینک صفحه نتیجه این سشن در سایت رسمی formula1.com را وارد کرده و ذخیره را بزنید.",
         widget=forms.URLInput(attrs={"placeholder": "https://www.formula1.com/en/results/2026/races/..."}),
+    )
+    f1_raw_html = forms.CharField(
+        required=False,
+        label="روش دوم (پشتیبان): پیست کردن سورس HTML صفحه",
+        help_text="اگر سایت F1 به سرور خطای SSL داد، در مرورگر خود صفحه نتیجه را باز کنید، کلید Ctrl+U را بزنید، کل متن را کپی (Ctrl+A سپس Ctrl+C) و اینجا Paste کنید.",
+        widget=forms.Textarea(attrs={"rows": 3, "placeholder": "کد HTML صفحه نتایج formula1.com را اینجا Paste کنید..."}),
     )
 
     class Meta:
@@ -75,14 +81,15 @@ class SessionAdmin(UTCSessionAdminMixin, ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         f1_url = form.cleaned_data.get("f1_official_url")
-        if f1_url:
+        f1_html = form.cleaned_data.get("f1_raw_html")
+        if f1_url or f1_html:
             try:
-                count, warnings = import_f1_session_results(obj, url=f1_url)
-                messages.success(request, f"✅ تعداد {count} نتیجه با موفقیت از سایت Formula1.com استخراج و ثبت شد.")
+                count, warnings = import_f1_session_results(obj, url=f1_url, raw_html=f1_html)
+                messages.success(request, f"✅ تعداد {count} نتیجه با موفقیت استخراج و ثبت شد.")
                 for w in warnings:
                     messages.warning(request, w)
             except Exception as exc:
-                messages.error(request, f"❌ خطا در دریافت نتایج از سایت فرمول یک: {exc}")
+                messages.error(request, f"❌ خطا در دریافت نتایج: {exc}")
 
 
 @admin.register(Season)
