@@ -51,6 +51,48 @@
         <div class="absolute -left-10 -bottom-10 opacity-5 text-9xl font-black italic pointer-events-none">{{ driver.code }}</div>
     </div>
 
+    <!-- آمار کارنامه راننده در فرمول یک -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span class="w-1.5 h-5 bg-red-600 rounded-sm"></span>
+            آمار و عملکرد در فرمول یک
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
+                <span class="text-xs text-zinc-500 block">گرندپری‌های وارد شده</span>
+                <span class="text-lg font-black text-white mt-1 block font-mono">{{ driver.grands_prix_entered }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
+                <span class="text-xs text-zinc-500 block">کل امتیازات کسب شده</span>
+                <span class="text-lg font-black text-white mt-1 block font-mono">{{ driver.career_points|floatformat }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
+                <span class="text-xs text-zinc-500 block">بهترین رده مسابقه</span>
+                <span class="text-base font-black text-white mt-1 block font-mono" dir="ltr">{{ driver.highest_race_finish|default:"-" }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
+                <span class="text-xs text-zinc-500 block">بهترین رده خط شروع</span>
+                <span class="text-base font-black text-white mt-1 block font-mono" dir="ltr">{{ driver.highest_grid_position|default:"-" }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
+                <span class="text-xs text-zinc-500 block">پول پوزیشن</span>
+                <span class="text-lg font-black text-white mt-1 block font-mono">{{ driver.pole_positions }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
+                <span class="text-xs text-zinc-500 block">پودیوم (سکو)</span>
+                <span class="text-lg font-black text-white mt-1 block font-mono">{{ driver.podiums }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
+                <span class="text-xs text-zinc-500 block">قهرمانی جهان</span>
+                <span class="text-lg font-black text-amber-400 mt-1 block font-mono">{{ driver.world_championships }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
+                <span class="text-xs text-zinc-500 block">تعداد DNF</span>
+                <span class="text-lg font-black text-red-400 mt-1 block font-mono">{{ driver.dnfs }}</span>
+            </div>
+        </div>
+    </div>
+
     <!-- بیوگرافی راننده -->
     {% if driver.bio %}
     <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-3">

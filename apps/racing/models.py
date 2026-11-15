@@ -29,6 +29,15 @@ class Team(models.Model):
     car_image = models.ImageField(upload_to='teams/cars/', blank=True, null=True, verbose_name="تصویر خودرو")
     bio = models.TextField(blank=True, verbose_name="بیوگرافی و تاریخچه")
 
+    # آمار عملکرد تیم (مورد ۷)
+    grands_prix_entered = models.PositiveIntegerField(default=0, verbose_name="تعداد گرندپری وارد شده")
+    career_points = models.DecimalField(max_digits=8, decimal_places=1, default=0.0, verbose_name="کل امتیازات کسب شده")
+    highest_race_finish = models.CharField(max_length=50, blank=True, help_text="مثال: 1 (x15)", verbose_name="بهترین رده مسابقه (تعداد دفعات)")
+    highest_grid_position = models.CharField(max_length=50, blank=True, help_text="مثال: 1 (x12)", verbose_name="بهترین خط شروع (تعداد دفعات)")
+    pole_positions = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد پول پوزیشن")
+    podiums = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد پودیوم")
+    world_championships = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد قهرمانی جهان")
+
     class Meta:
         verbose_name = "تیم"
         verbose_name_plural = "تیم‌ها"
@@ -48,8 +57,23 @@ class Driver(models.Model):
     country = models.CharField(max_length=100, verbose_name="کشور")
     date_of_birth = models.DateField(verbose_name="تاریخ تولد")
     team = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='drivers', verbose_name="تیم فعلی")
+    is_main_driver = models.BooleanField(
+        default=True,
+        help_text="اگر تیک نخورد (راننده رزرو / تمرینی)، در صفحه رانندگان و لیست رانندگان تیم نمایش داده نمی‌شود اما در نتایج جلسات و جدول رده‌بندی قابل انتخاب است.",
+        verbose_name="راننده اصلی فصل؟",
+    )
     portrait = models.ImageField(upload_to='drivers/', verbose_name="تصویر راننده")
     bio = models.TextField(blank=True, verbose_name="بیوگرافی")
+
+    # آمار عملکرد راننده (مورد ۶)
+    grands_prix_entered = models.PositiveIntegerField(default=0, verbose_name="تعداد گرندپری وارد شده")
+    career_points = models.DecimalField(max_digits=7, decimal_places=1, default=0.0, verbose_name="کل امتیازات دوران حرفه‌ای")
+    highest_race_finish = models.CharField(max_length=50, blank=True, help_text="مثال: 1 (x62)", verbose_name="بهترین رده مسابقه (تعداد دفعات)")
+    highest_grid_position = models.CharField(max_length=50, blank=True, help_text="مثال: 1 (x40)", verbose_name="بهترین خط شروع (تعداد دفعات)")
+    pole_positions = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد پول پوزیشن")
+    podiums = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد پودیوم")
+    world_championships = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد قهرمانی جهان")
+    dnfs = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد DNF")
 
     class Meta:
         verbose_name = "راننده"
@@ -60,7 +84,8 @@ class Driver(models.Model):
         return f"{self.first_name} {self.last_name}"
 
     def __str__(self):
-        return f"{self.full_name} (#{self.permanent_number})"
+        role = "" if self.is_main_driver else " [رزرو]"
+        return f"{self.full_name} (#{self.permanent_number}){role}"
 
     def get_absolute_url(self):
         return reverse('racing:driver_detail', kwargs={'code': self.code})

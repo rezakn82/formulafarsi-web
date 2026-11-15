@@ -1,4 +1,4 @@
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Prefetch, Subquery
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, render
 
@@ -13,7 +13,7 @@ def _get_current_season():
 # ۱. لیست تمام رانندگان (مرتب‌شده بر اساس جدول رده‌بندی تیمی فصل جاری)
 def drivers_list_view(request):
     current_season = _get_current_season()
-    drivers = Driver.objects.select_related('team')
+    drivers = Driver.objects.filter(is_main_driver=True).select_related('team')
 
     if current_season:
         team_pos_subquery = TeamStanding.objects.filter(
@@ -39,15 +39,13 @@ def drivers_list_view(request):
 def driver_detail_view(request, code):
     driver = get_object_or_404(
         Driver.objects.select_related('team'),
-        code__iexact=code
+        code__iexact=code,
     )
-    
-    # هم‌تیمی (سایر رانندگان همین تیم)
+
     teammates = []
     if driver.team:
-        teammates = driver.team.drivers.exclude(id=driver.id)
+        teammates = driver.team.drivers.filter(is_main_driver=True).exclude(id=driver.id)
 
-    # اخباری که این راننده در آن‌ها تگ شده است
     related_articles = driver.articles.filter(status='published').select_related('category')[:6]
 
     context = {
@@ -61,7 +59,11 @@ def driver_detail_view(request, code):
 # ۳. لیست تمام تیم‌ها (مرتب‌شده بر اساس جدول رده‌بندی تیمی فصل جاری)
 def teams_list_view(request):
     current_season = _get_current_season()
-    teams = Team.objects.prefetch_related('drivers')
+    main_drivers_prefetch = Prefetch(
+        'drivers',
+        queryset=Driver.objects.filter(is_main_driver=True).order_by('permanent_number'),
+    )
+    teams = Team.objects.prefetch_related(main_drivers_prefetch)
 
     if current_season:
         team_pos_subquery = TeamStanding.objects.filter(
@@ -80,12 +82,15 @@ def teams_list_view(request):
 
 # ۴. پروفایل تکی تیم
 def team_detail_view(request, pk):
+    main_drivers_prefetch = Prefetch(
+        'drivers',
+        queryset=Driver.objects.filter(is_main_driver=True).order_by('permanent_number'),
+    )
     team = get_object_or_404(
-        Team.objects.prefetch_related('drivers'),
-        pk=pk
+        Team.objects.prefetch_related(main_drivers_prefetch),
+        pk=pk,
     )
 
-    # اخباری که این تیم در آن‌ها تگ شده است
     related_articles = team.articles.filter(status='published').select_related('category')[:6]
 
     context = {
@@ -97,9 +102,8 @@ def team_detail_view(request, pk):
 
 
 def standings_view(request):
-    # دریافت فصل جاری یا آخرین فصل موجود
-    current_season = Season.objects.filter(is_current=True).first() or Season.objects.order_by('-year').first()
-    
+    current_season = _get_current_season()
+
     driver_standings = []
     team_standings = []
 

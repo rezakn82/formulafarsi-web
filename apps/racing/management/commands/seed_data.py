@@ -28,7 +28,7 @@ def create_placeholder_image(filename: str, width: int, height: int, color: str)
 
 
 class Command(BaseCommand):
-    help = "تولید دیتای تستی کامل برای وبسایت فرمولافارسی (شامل تست تک‌فصلی، آرشیو نتایج و تگ‌های کلیکی اخبار)"
+    help = "تولید دیتای تستی کامل برای وبسایت فرمولافارسی (شامل آمار تیم/راننده/گرندپری، راننده رزرو و آرشیو نتایج)"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -85,16 +85,16 @@ class Command(BaseCommand):
                 self.style.ERROR("✘ خطا در تست فصل جاری: بیش از یک فصل فعال وجود دارد!")
             )
 
-        # ۳. ساخت ۵ تیم واقعی فرمول یک با رنگ سازمانی دقیق
+        # ۳. ساخت ۵ تیم واقعی فرمول یک به همراه آمار کامل تاریخچه
         teams_data = [
-            ("فراری", "Scuderia Ferrari", "مارانلو، ایتالیا", "فردریک واسور", "فراری", "#E80020"),
-            ("ردبول", "Oracle Red Bull Racing", "میلتون کینز، انگلستان", "کریستین هورنر", "هوندا RBPT", "#3671C6"),
-            ("مک‌لارن", "McLaren Formula 1 Team", "وکینگ، انگلستان", "آندره‌آ استلا", "مرسدس", "#FF8000"),
-            ("مرسدس", "Mercedes-AMG PETRONAS F1", "براکلی، انگلستان", "توتو وولف", "مرسدس", "#27F4D2"),
-            ("آستون مارتین", "Aston Martin Aramco F1", "سیلوراستون، انگلستان", "مایک کرک", "مرسدس", "#229971"),
+            ("فراری", "Scuderia Ferrari", "مارانلو، ایتالیا", "فردریک واسور", "فراری", "#E80020", 1100, "10240.5", "1 (x248)", "1 (x253)", 253, 825, 16),
+            ("ردبول", "Oracle Red Bull Racing", "میلتون کینز، انگلستان", "کریستین هورنر", "هوندا RBPT", "#3671C6", 395, "7850.0", "1 (x122)", "1 (x103)", 103, 282, 6),
+            ("مک‌لارن", "McLaren Formula 1 Team", "وکینگ، انگلستان", "آندره‌آ استلا", "مرسدس", "#FF8000", 972, "6950.5", "1 (x189)", "1 (x164)", 164, 524, 9),
+            ("مرسدس", "Mercedes-AMG PETRONAS F1", "براکلی، انگلستان", "توتو وولف", "مرسدس", "#27F4D2", 318, "7620.5", "1 (x129)", "1 (x139)", 139, 298, 8),
+            ("آستون مارتین", "Aston Martin Aramco F1", "سیلوراستون، انگلستان", "مایک کرک", "مرسدس", "#229971", 98, "512.0", "2 (x3)", "2 (x1)", 0, 9, 0),
         ]
         teams = []
-        for idx, (name, full_name, base, chief, pu, color) in enumerate(teams_data, start=1):
+        for idx, (name, full_name, base, chief, pu, color, gps, pts, best_race, best_grid, poles, podiums, wcc) in enumerate(teams_data, start=1):
             team, _ = Team.objects.update_or_create(
                 name=name,
                 defaults={
@@ -106,25 +106,35 @@ class Command(BaseCommand):
                     "bio": f"<p>{fake.paragraph(nb_sentences=6)}</p><p>{fake.paragraph(nb_sentences=5)}</p>",
                     "logo": create_placeholder_image(f"team_logo_{idx}.jpg", 200, 200, color),
                     "car_image": create_placeholder_image(f"team_car_{idx}.jpg", 800, 300, color),
+                    "grands_prix_entered": gps,
+                    "career_points": Decimal(pts),
+                    "highest_race_finish": best_race,
+                    "highest_grid_position": best_grid,
+                    "pole_positions": poles,
+                    "podiums": podiums,
+                    "world_championships": wcc,
                 },
             )
             teams.append(team)
 
-        # ۴. ساخت ۱۰ راننده (۲ راننده برای هر تیم)
+        # ۴. ساخت ۱۰ راننده اصلی + ۱ راننده رزرو تستی (الیور برمن) با آمار کامل دوران حرفه‌ای
         drivers_data = [
-            ("شارل", "لکلرک", 16, "LEC", "موناکو", teams[0]),
-            ("لوئیس", "همیلتون", 44, "HAM", "بریتانیا", teams[0]),
-            ("مکس", "ورستپن", 1, "VER", "هلند", teams[1]),
-            ("لیام", "لاوسون", 30, "LAW", "نیوزیلند", teams[1]),
-            ("لندو", "نوریس", 4, "NOR", "بریتانیا", teams[2]),
-            ("اسکار", "پیاستری", 81, "PIA", "استرالیا", teams[2]),
-            ("جورج", "راسل", 63, "RUS", "بریتانیا", teams[3]),
-            ("آندره‌آ کیمی", "آنتونلی", 12, "ANT", "ایتالیا", teams[3]),
-            ("فرناندو", "آلونسو", 14, "ALO", "اسپانیا", teams[4]),
-            ("لنس", "استرول", 18, "STR", "کانادا", teams[4]),
+            ("شارل", "لکلرک", 16, "LEC", "موناکو", teams[0], True, 149, "1430.0", "1 (x8)", "1 (x26)", 26, 43, 0, 21),
+            ("لوئیس", "همیلتون", 44, "HAM", "بریتانیا", teams[0], True, 356, "4862.5", "1 (x105)", "1 (x104)", 104, 202, 7, 32),
+            ("مکس", "ورستپن", 1, "VER", "هلند", teams[1], True, 209, "3023.5", "1 (x63)", "1 (x40)", 40, 112, 4, 32),
+            ("لیام", "لاوسون", 30, "LAW", "نیوزیلند", teams[1], True, 11, "6.0", "9 (x3)", "5 (x1)", 0, 0, 0, 1),
+            ("لندو", "نوریس", 4, "NOR", "بریتانیا", teams[2], True, 128, "1007.0", "1 (x4)", "1 (x9)", 9, 26, 0, 11),
+            ("اسکار", "پیاستری", 81, "PIA", "استرالیا", teams[2], True, 46, "389.0", "1 (x2)", "2 (x5)", 0, 10, 0, 3),
+            ("جورج", "راسل", 63, "RUS", "بریتانیا", teams[3], True, 128, "714.0", "1 (x3)", "1 (x5)", 5, 15, 0, 19),
+            ("آندره‌آ کیمی", "آنتونلی", 12, "ANT", "ایتالیا", teams[3], True, 2, "18.0", "4 (x1)", "5 (x1)", 0, 0, 0, 0),
+            ("فرناندو", "آلونسو", 14, "ALO", "اسپانیا", teams[4], True, 404, "2337.0", "1 (x32)", "1 (x22)", 22, 106, 2, 79),
+            ("لنس", "استرول", 18, "STR", "کانادا", teams[4], True, 167, "292.0", "3 (x3)", "1 (x1)", 1, 3, 0, 31),
+            # راننده رزرو (نباید در صفحه رانندگان و لیست رانندگان تیم فراری دیده شود، اما در نتایج قابل استفاده است)
+            ("الیور", "برمن", 87, "BEA", "بریتانیا", teams[0], False, 3, "7.0", "7 (x1)", "10 (x1)", 0, 0, 0, 0),
         ]
         drivers = []
-        for first, last, num, code, country, team in drivers_data:
+        reserve_driver = None
+        for first, last, num, code, country, team, is_main, gps, pts, best_race, best_grid, poles, podiums, wdc, dnfs in drivers_data:
             driver, _ = Driver.objects.update_or_create(
                 code=code,
                 defaults={
@@ -134,11 +144,23 @@ class Command(BaseCommand):
                     "country": country,
                     "date_of_birth": fake.date_of_birth(minimum_age=19, maximum_age=42),
                     "team": team,
+                    "is_main_driver": is_main,
                     "bio": f"<h2>زندگینامه {first} {last}</h2><p>{fake.paragraph(nb_sentences=7)}</p>",
                     "portrait": create_placeholder_image(f"driver_{code}.jpg", 500, 500, team.color_code),
+                    "grands_prix_entered": gps,
+                    "career_points": Decimal(pts),
+                    "highest_race_finish": best_race,
+                    "highest_grid_position": best_grid,
+                    "pole_positions": poles,
+                    "podiums": podiums,
+                    "world_championships": wdc,
+                    "dnfs": dnfs,
                 },
             )
-            drivers.append(driver)
+            if is_main:
+                drivers.append(driver)
+            else:
+                reserve_driver = driver
 
         # ۵. ساخت جدول رده‌بندی رانندگان و تیم‌ها برای هر دو فصل ۲۰۲۵ و ۲۰۲۶
         points_scale_2026 = [44, 36, 30, 24, 20, 16, 12, 8, 4, 1]
@@ -191,7 +213,7 @@ class Command(BaseCommand):
             s_type = session_obj.session_type
 
             for pos, drv in enumerate(ordered_drivers, start=1):
-                is_qual = s_type in ("qualifying", "sprint_shootout")
+                is_qual = s_type in ("qualifying", "sprint_qualifying", "sprint_shootout")
                 is_race_or_sprint = s_type in ("race", "sprint")
                 status = "dnf" if (is_race_or_sprint and pos == 10) else "finished"
 
@@ -235,17 +257,17 @@ class Command(BaseCommand):
                     },
                 )
 
-        # ۶. ساخت پیست‌ها، گرندپری‌ها و سشن‌ها برای فصل جاری (۲۰۲۶)
+        # ۶. ساخت پیست‌ها، گرندپری‌ها (با اطلاعات تکمیلی) و سشن‌ها برای فصل جاری (۲۰۲۶)
         now = timezone.now()
         gp_configs = [
-            (1, "گرندپری بحرین", "پیست بین‌المللی صخیر", "صخیر", "بحرین", "5.412", 15, -14, False),
-            (2, "گرندپری عربستان", "پیست خیابانی جده", "جده", "عربستان", "6.174", 27, -7, True),
-            (3, "گرندپری استرالیا", "آلبرت پارک", "ملبورن", "استرالیا", "5.278", 14, 2, False),
-            (4, "گرندپری ژاپن", "پیست سوزوکا", "سوزوکا", "ژاپن", "5.807", 18, 14, True),
+            (1, "گرندپری بحرین", "پیست بین‌المللی صخیر", "صخیر", "بحرین", "5.412", 15, -14, False, "مکس ورستپن (ردبول)", 57, 2004, "308.238"),
+            (2, "گرندپری عربستان", "پیست خیابانی جده", "جده", "عربستان", "6.174", 27, -7, True, "شارل لکلرک (فراری)", 50, 2021, "308.450"),
+            (3, "گرندپری استرالیا", "آلبرت پارک", "ملبورن", "استرالیا", "5.278", 14, 2, False, "لندو نوریس (مک‌لارن)", 58, 1996, "306.124"),
+            (4, "گرندپری ژاپن", "پیست سوزوکا", "سوزوکا", "ژاپن", "5.807", 18, 14, True, "مکس ورستپن (ردبول)", 53, 1987, "307.471"),
         ]
 
         grands_prix = []
-        for round_num, gp_name, circuit_name, loc, country, length, corners, offset_days, is_sprint in gp_configs:
+        for round_num, gp_name, circuit_name, loc, country, length, corners, offset_days, is_sprint, prev_winner, laps_cnt, first_yr, dist_km in gp_configs:
             circuit, _ = Circuit.objects.update_or_create(
                 name=circuit_name,
                 defaults={
@@ -267,12 +289,16 @@ class Command(BaseCommand):
                     "circuit": circuit,
                     "start_date": race_day - timedelta(days=2),
                     "end_date": race_day,
+                    "previous_winner": prev_winner,
+                    "laps_count": laps_cnt,
+                    "first_grand_prix_year": first_yr,
+                    "race_distance_km": Decimal(dist_km),
                 },
             )
             grands_prix.append(gp)
 
             session_offsets = (
-                [("fp1", -48), ("sprint_shootout", -44), ("sprint", -24), ("qualifying", -20), ("race", 0)]
+                [("fp1", -48), ("sprint_qualifying", -44), ("sprint", -24), ("qualifying", -20), ("race", 0)]
                 if is_sprint
                 else [("fp1", -48), ("fp2", -44), ("fp3", -24), ("qualifying", -20), ("race", 0)]
             )
@@ -288,7 +314,10 @@ class Command(BaseCommand):
 
                 if offset_days < 0:
                     shuffled_drivers = list(drivers)
-                    if round_num == 2:
+                    # حضور راننده رزرو (الیور برمن) در تمرین اول راند ۱ به جای همیلتون برای تست راننده رزرو
+                    if round_num == 1 and s_type == "fp1" and reserve_driver:
+                        shuffled_drivers[1] = reserve_driver
+                    elif round_num == 2:
                         shuffled_drivers[0], shuffled_drivers[2] = shuffled_drivers[2], shuffled_drivers[0]
                     populate_session_results(session_obj, shuffled_drivers)
 
@@ -302,6 +331,10 @@ class Command(BaseCommand):
                 "circuit": grands_prix[0].circuit,
                 "start_date": old_gp_date - timedelta(days=2),
                 "end_date": old_gp_date,
+                "previous_winner": "مکس ورستپن (ردبول)",
+                "laps_count": 57,
+                "first_grand_prix_year": 2004,
+                "race_distance_km": Decimal("308.238"),
             },
         )
         for s_type, hours_diff in [("qualifying", -20), ("race", 0)]:
@@ -312,7 +345,7 @@ class Command(BaseCommand):
             )
             populate_session_results(old_session, list(reversed(drivers)))
 
-        # ۸. ساخت دسته‌بندی‌ها و ۱۲ خبر فارسی (با تگ‌های هدفمند برای تست کلیک‌پذیری تگ‌ها)
+        # ۸. ساخت دسته‌بندی‌ها و ۱۲ خبر فارسی
         cat_titles = ["گزارش مسابقه", "تحلیل فنی", "نقل و انتقالات", "مصاحبه اختصاصی"]
         categories = []
         for title in cat_titles:
@@ -325,14 +358,14 @@ class Command(BaseCommand):
         for i in range(1, 13):
             if i == 1:
                 title = "پیروزی خیره‌کننده فراری در افتتاحیه فصل ۲۰۲۶ بحرین (تست تگ‌های فصل جاری)"
-                target_gp = grands_prix[0]  # گرندپری بحرین ۲۰۲۶
-                tagged_drivers = [drivers[0], drivers[1]]  # لکلرک و همیلتون
-                tagged_teams = [teams[0]]  # فراری
+                target_gp = grands_prix[0]
+                tagged_drivers = [drivers[0], drivers[1]]
+                tagged_teams = [teams[0]]
             elif i == 2:
                 title = "مروری بر آرشیو: نبرد تاریخی ورستپن در بحرین ۲۰۲۵ (تست تگ گرندپری آرشیوی)"
-                target_gp = gp_2025  # گرندپری بحرین ۲۰۲۵ (فصل گذشته)
-                tagged_drivers = [drivers[2], drivers[3]]  # ورستپن و لاوسون
-                tagged_teams = [teams[1]]  # ردبول
+                target_gp = gp_2025
+                tagged_drivers = [drivers[2], drivers[3]]
+                tagged_teams = [teams[1]]
             else:
                 title = f"{fake.sentence(nb_words=6).rstrip('.')} (خبر آزمایشی {i})"
                 target_gp = grands_prix[i % len(grands_prix)]
@@ -364,7 +397,7 @@ class Command(BaseCommand):
             art.related_teams.set(tagged_teams)
 
         self.stdout.write(
-            self.style.SUCCESS("✔ تست ۲ آماده است: تگ‌های کلیکی راننده، تیم و گرندپری در اخبار ۱ تا ۱۲ ثبت شدند!")
+            self.style.SUCCESS("✔ راننده رزرو تستی (الیور برمن #87) ساخته شد و در تمرین اول بحرین ثبت گردید!")
         )
         self.stdout.write(self.style.SUCCESS("✅ دیتای تستی فرمولافارسی با موفقیت ساخته شد!"))
         self.stdout.write(self.style.SUCCESS("👤 یوزر ادمین: admin | رمز عبور: admin1234"))

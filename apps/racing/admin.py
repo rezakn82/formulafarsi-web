@@ -21,9 +21,10 @@ class TeamAdmin(ModelAdmin, SummernoteModelAdmin):
 @admin.register(Driver)
 class DriverAdmin(ModelAdmin, SummernoteModelAdmin):
     summernote_fields = ('bio',)
-    list_display = ('full_name', 'permanent_number', 'code', 'team', 'country')
-    list_filter = ('team', 'country')
-    search_fields = ('first_name', 'last_name', 'code')
+    list_display = ('full_name', 'permanent_number', 'code', 'team', 'is_main_driver', 'country')
+    list_editable = ('is_main_driver',)
+    list_filter = ('is_main_driver', 'team', 'country')
+    search_fields = ('first_name', 'last_name', 'code', 'permanent_number')
 
 @admin.register(DriverStanding)
 class DriverStandingAdmin(ModelAdmin):

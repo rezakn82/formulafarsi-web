@@ -33,20 +33,25 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {% for gp in grands_prix %}
         <a href="{% url 'grandprix_calendar:grandprix_detail' gp.round_number %}?season={{ season.year }}"
-           class="bg-zinc-900/70 border border-zinc-800/80 hover:border-zinc-700 rounded-2xl p-5 transition flex flex-col justify-between group relative overflow-hidden">
+           class="{% if gp.id == next_gp_id %}bg-gradient-to-br from-red-950/70 via-zinc-900 to-zinc-900 border-2 border-red-600 shadow-lg shadow-red-950/40{% else %}bg-zinc-900/70 border border-zinc-800/80 hover:border-zinc-700{% endif %} rounded-2xl p-5 transition flex flex-col justify-between group relative overflow-hidden">
             
-            <!-- وضعیت گرندپری (برگزار شده / جاری / آینده) -->
+            <!-- وضعیت گرندپری (برگزار شده / جاری / مسابقه بعدی / آینده) -->
             <div class="flex items-center justify-between mb-4">
-                <span class="text-xs font-mono font-bold text-zinc-400 bg-zinc-800 px-2.5 py-1 rounded-md">
+                <span class="text-xs font-mono font-bold {% if gp.id == next_gp_id %}text-white bg-red-600{% else %}text-zinc-400 bg-zinc-800{% endif %} px-2.5 py-1 rounded-md">
                     راند {{ gp.round_number }}
                 </span>
 
                 {% if today > gp.end_date %}
                 <span class="text-[11px] text-zinc-400 bg-zinc-800/60 px-2 py-0.5 rounded">پایان یافته</span>
                 {% elif today >= gp.start_date and today <= gp.end_date %}
-                <span class="text-[11px] text-red-400 bg-red-950/60 border border-red-800/50 px-2 py-0.5 rounded flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                <span class="text-[11px] text-white bg-red-600 px-2.5 py-0.5 rounded flex items-center gap-1 font-bold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
                     در حال برگزاری
+                </span>
+                {% elif gp.id == next_gp_id %}
+                <span class="text-[11px] text-red-300 bg-red-950/90 border border-red-500/60 px-2.5 py-0.5 rounded flex items-center gap-1 font-bold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                    مسابقه پیش رو
                 </span>
                 {% else %}
                 <span class="text-[11px] text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded">در پیشِ رو</span>

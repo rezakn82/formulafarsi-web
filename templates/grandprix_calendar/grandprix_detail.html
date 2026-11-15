@@ -56,10 +56,10 @@
                             <th class="py-3.5 px-4">راننده</th>
                             <th class="py-3.5 px-4">تیم</th>
 
-                            {% if session.session_type == 'qualifying' or session.session_type == 'sprint_shootout' %}
-                                <th class="py-3.5 px-4 text-center font-mono">Q1 / SQ1</th>
-                                <th class="py-3.5 px-4 text-center font-mono">Q2 / SQ2</th>
-                                <th class="py-3.5 px-4 text-center font-mono">Q3 / SQ3</th>
+                            {% if session.session_type == 'qualifying' or session.session_type == 'sprint_qualifying' or session.session_type == 'sprint_shootout' %}
+                                <th class="py-3.5 px-4 text-center font-mono">Q1</th>
+                                <th class="py-3.5 px-4 text-center font-mono">Q2</th>
+                                <th class="py-3.5 px-4 text-center font-mono">Q3</th>
                             {% else %}
                                 {% if session.session_type == 'race' or session.session_type == 'sprint' %}
                                 <th class="py-3.5 px-4 text-center">خط شروع</th>
@@ -109,7 +109,7 @@
                             </td>
 
                             <!-- ستون‌های متغیر بر اساس نوع جلسه -->
-                            {% if session.session_type == 'qualifying' or session.session_type == 'sprint_shootout' %}
+                            {% if session.session_type == 'qualifying' or session.session_type == 'sprint_qualifying' or session.session_type == 'sprint_shootout' %}
                                 <td class="py-3.5 px-4 text-center font-mono text-xs text-zinc-300">{{ res.q1_time|default:"-" }}</td>
                                 <td class="py-3.5 px-4 text-center font-mono text-xs text-zinc-300">{{ res.q2_time|default:"-" }}</td>
                                 <td class="py-3.5 px-4 text-center font-mono text-xs font-bold text-emerald-400">{{ res.q3_time|default:"-" }}</td>
@@ -174,8 +174,24 @@
                 <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.circuit.length_km }} km</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
+                <span class="text-xs text-zinc-500 block">تعداد دور گرندپری</span>
+                <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.laps_count|default:"-" }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
+                <span class="text-xs text-zinc-500 block">مسافت مسابقه</span>
+                <span class="text-lg font-bold text-white mt-1 block font-mono">{% if grand_prix.race_distance_km %}{{ grand_prix.race_distance_km }} km{% else %}-{% endif %}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
+                <span class="text-xs text-zinc-500 block">اولین حضور در F1</span>
+                <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.first_grand_prix_year|default:"-" }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
                 <span class="text-xs text-zinc-500 block">تعداد پیچ‌ها</span>
                 <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.circuit.corners }}</span>
+            </div>
+            <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
+                <span class="text-xs text-zinc-500 block">برنده سال قبل</span>
+                <span class="text-sm font-bold text-amber-400 mt-1 block">{{ grand_prix.previous_winner|default:"ثبت نشده" }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center col-span-2">
                 <span class="text-xs text-zinc-500 block">رکورد پیست</span>

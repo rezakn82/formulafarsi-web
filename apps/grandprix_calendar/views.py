@@ -16,8 +16,10 @@ def _resolve_season(request):
 def calendar_view(request):
     current_season = _resolve_season(request)
     seasons = Season.objects.order_by('-year')
+    today = timezone.now().date()
 
     grands_prix = []
+    next_gp_id = None
     if current_season:
         race_results_prefetch = Prefetch(
             'results',
@@ -27,20 +29,24 @@ def calendar_view(request):
             'sessions',
             queryset=Session.objects.prefetch_related(race_results_prefetch),
         )
-        grands_prix = (
+        grands_prix = list(
             GrandPrix.objects.filter(season=current_season)
             .select_related('circuit')
             .prefetch_related(sessions_prefetch)
             .order_by('round_number')
         )
-
-    today = timezone.now().date()
+        # پیدا کردن اولین گرندپری که هنوز به پایان نرسیده است (مسابقه پیش رو / جاری)
+        for gp in grands_prix:
+            if gp.end_date >= today:
+                next_gp_id = gp.id
+                break
 
     context = {
         'season': current_season,
         'seasons': seasons,
         'grands_prix': grands_prix,
         'today': today,
+        'next_gp_id': next_gp_id,
     }
     return render(request, 'grandprix_calendar/calendar_list.html', context)
 

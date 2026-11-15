@@ -36,6 +36,12 @@ class GrandPrix(models.Model):
     start_date = models.DateField(verbose_name="تاریخ شروع آخرهفته")
     end_date = models.DateField(verbose_name="تاریخ پایان (روز مسابقه)")
 
+    # اطلاعات تکمیلی گرندپری (مورد ۵)
+    previous_winner = models.CharField(max_length=120, blank=True, verbose_name="برنده سال قبل")
+    laps_count = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="تعداد دور گرندپری")
+    first_grand_prix_year = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="اولین حضور در فرمول یک (سال)")
+    race_distance_km = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True, verbose_name="مسافت مسابقه (کیلومتر)")
+
     class Meta:
         verbose_name = "گرندپری"
         verbose_name_plural = "گرندپری‌ها"
@@ -53,13 +59,14 @@ class Session(models.Model):
         ('fp3', 'تمرین سوم (FP3)'),
         ('qualifying', 'تعیین خط (Qualifying)'),
         ('sprint_qualifying', 'تعیین خط اسپرینت'),
+        ('sprint_shootout', 'تعیین خط اسپرینت'),
         ('sprint', 'مسابقه اسپرینت'),
         ('race', 'مسابقه اصلی (Main Race)'),
     ]
 
     grand_prix = models.ForeignKey(GrandPrix, on_delete=models.CASCADE, related_name='sessions', verbose_name="گرندپری")
     session_type = models.CharField(max_length=20, choices=SESSION_TYPES, verbose_name="نوع جلسه")
-    start_time = models.DateTimeField(verbose_name="زمان شروع (UTC)")
+    start_time = models.DateTimeField(verbose_name="زمان شروع")
 
     class Meta:
         verbose_name = "جلسه مسابقه"
@@ -118,9 +125,9 @@ class SessionResult(models.Model):
         help_text="مثال: 1:31:44.742 برای نفر اول یا +2.451s برای نفرات بعدی",
         verbose_name="زمان / فاصله",
     )
-    q1_time = models.CharField(max_length=20, blank=True, verbose_name="زمان Q1 / SQ1")
-    q2_time = models.CharField(max_length=20, blank=True, verbose_name="زمان Q2 / SQ2")
-    q3_time = models.CharField(max_length=20, blank=True, verbose_name="زمان Q3 / SQ3")
+    q1_time = models.CharField(max_length=20, blank=True, verbose_name="زمان Q1")
+    q2_time = models.CharField(max_length=20, blank=True, verbose_name="زمان Q2")
+    q3_time = models.CharField(max_length=20, blank=True, verbose_name="زمان Q3")
     points = models.DecimalField(
         max_digits=4,
         decimal_places=1,
