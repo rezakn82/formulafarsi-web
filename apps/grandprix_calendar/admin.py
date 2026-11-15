@@ -8,18 +8,49 @@ from unfold.admin import ModelAdmin, TabularInline
 from .f1_importer import import_f1_session_results
 from .models import GrandPrix, Season, Session, SessionResult
 
+
 class UTCSessionAdminMixin:
-    """تفسیر و نمایش فیلد زمان شروع سشن‌ها در پنل ادمین بر اساس ساعت جهانی (UTC)."""
+    """قفل کردن کامل منطقه زمانی روی UTC در تمام مراحل پردازش و رندر قالب‌های ادمین."""
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         with timezone.override(dt_timezone.utc):
-            return super().changeform_view(request, object_id, form_url, extra_context)
+            response = super().changeform_view(request, object_id, form_url, extra_context)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            return response
 
     def changelist_view(self, request, extra_context=None):
         with timezone.override(dt_timezone.utc):
-            return super().changelist_view(request, extra_context)
+            response = super().changelist_view(request, extra_context)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            return response
 
-class SessionAdminForm(forms.ModelForm):
+
+class UTCSessionBaseForm(forms.ModelForm):
+    """تضمین نمایش و ذخیره فیلد start_time به صورت دقیق بر مبنای UTC."""
+
+    def __init__(self, *args, **kwargs):
+        with timezone.override(dt_timezone.utc):
+            super().__init__(*args, **kwargs)
+            if self.instance and self.instance.pk and self.instance.start_time:
+                utc_dt = self.instance.start_time.astimezone(dt_timezone.utc)
+                self.initial["start_time"] = utc_dt.replace(tzinfo=None)
+
+    def clean_start_time(self):
+        val = self.cleaned_data.get("start_time")
+        if val:
+            if timezone.is_aware(val):
+                return val.replace(tzinfo=dt_timezone.utc)
+            return timezone.make_aware(val, dt_timezone.utc)
+        return val
+
+    class Meta:
+        model = Session
+        fields = "__all__"
+
+
+class SessionAdminForm(UTCSessionBaseForm):
     f1_official_url = forms.URLField(
         required=False,
         label="روش اول: ایمپورت از لینک Formula1.com",
@@ -33,19 +64,21 @@ class SessionAdminForm(forms.ModelForm):
         widget=forms.Textarea(attrs={"rows": 3, "placeholder": "کد HTML صفحه نتایج formula1.com را اینجا Paste کنید..."}),
     )
 
-    class Meta:
-        model = Session
-        fields = "__all__"
+    class Meta(UTCSessionBaseForm.Meta):
+        pass
+
 
 class SessionInline(TabularInline):
     model = Session
-    extra = 5
+    form = UTCSessionBaseForm
+    extra = 0
     show_change_link = True
     tab = True
 
+
 class SessionResultInline(TabularInline):
     model = SessionResult
-    extra = 22  # باز کردن ۲۰ ردیف آماده برای ۲۰ راننده فرمول یک
+    extra = 0
     autocomplete_fields = ('driver', 'team')
     fields = (
         'position',
