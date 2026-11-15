@@ -61,9 +61,7 @@
                                 <th class="py-3.5 px-4 text-center">Q2</th>
                                 <th class="py-3.5 px-4 text-center">Q3</th>
                             {% else %}
-                                {% if session.session_type == 'race' or session.session_type == 'sprint' %}
-                                <th class="py-3.5 px-4 text-center">خط شروع</th>
-                                {% endif %}
+                                
                                 <th class="py-3.5 px-4 text-center">دورها</th>
                                 <th class="py-3.5 px-4 text-left">زمان / فاصله</th>
                             {% endif %}
@@ -114,9 +112,7 @@
                                 <td class="py-3.5 px-4 text-center font-mono text-xs text-zinc-300">{{ res.q2_time|default:"-" }}</td>
                                 <td class="py-3.5 px-4 text-center font-mono text-xs font-bold text-emerald-400">{{ res.q3_time|default:"-" }}</td>
                             {% else %}
-                                {% if session.session_type == 'race' or session.session_type == 'sprint' %}
-                                <td class="py-3.5 px-4 text-center font-mono text-xs text-zinc-400">{{ res.grid_position|default:"-" }}</td>
-                                {% endif %}
+                                
                                 <td class="py-3.5 px-4 text-center font-mono text-xs text-zinc-400">{{ res.laps }}</td>
                                 <td class="py-3.5 px-4 text-left font-mono text-xs text-zinc-200" dir="ltr">{{ res.time_or_gap|default:"-" }}</td>
                             {% endif %}
