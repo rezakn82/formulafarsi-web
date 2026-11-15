@@ -36,7 +36,7 @@
                 </div>
                 <div class="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
                     <span class="text-zinc-500 block">تاریخ تولد</span>
-                    <span class="text-zinc-200 font-bold mt-1 block font-mono">{{ driver.date_of_birth|jalali_date:"j F Y" }}</span>
+                    <span class="text-zinc-200 font-bold mt-1 block">{{ driver.date_of_birth|jalali_date:"j F Y" }}</span>
                 </div>
             </div>
         </div>
@@ -60,35 +60,35 @@
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">گرندپری‌های وارد شده</span>
-                <span class="text-lg font-black text-white mt-1 block font-mono">{{ driver.grands_prix_entered }}</span>
+                <span class="text-lg font-black text-white mt-1 block">{{ driver.grands_prix_entered }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">کل امتیازات کسب شده</span>
-                <span class="text-lg font-black text-white mt-1 block font-mono">{{ driver.career_points|floatformat }}</span>
+                <span class="text-lg font-black text-white mt-1 block">{{ driver.career_points|floatformat }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">بهترین رده مسابقه</span>
-                <span class="text-base font-black text-white mt-1 block font-mono" dir="ltr">{{ driver.highest_race_finish|default:"-" }}</span>
+                <span class="text-base font-black text-white mt-1 block" dir="ltr">{{ driver.highest_race_finish|default:"-" }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">بهترین رده خط شروع</span>
-                <span class="text-base font-black text-white mt-1 block font-mono" dir="ltr">{{ driver.highest_grid_position|default:"-" }}</span>
+                <span class="text-base font-black text-white mt-1 block" dir="ltr">{{ driver.highest_grid_position|default:"-" }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">پول پوزیشن</span>
-                <span class="text-lg font-black text-white mt-1 block font-mono">{{ driver.pole_positions }}</span>
+                <span class="text-lg font-black text-white mt-1 block">{{ driver.pole_positions }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">پودیوم (سکو)</span>
-                <span class="text-lg font-black text-white mt-1 block font-mono">{{ driver.podiums }}</span>
+                <span class="text-lg font-black text-white mt-1 block">{{ driver.podiums }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">قهرمانی جهان</span>
-                <span class="text-lg font-black text-amber-400 mt-1 block font-mono">{{ driver.world_championships }}</span>
+                <span class="text-lg font-black text-amber-400 mt-1 block">{{ driver.world_championships }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 text-center">
                 <span class="text-xs text-zinc-500 block">تعداد DNF</span>
-                <span class="text-lg font-black text-red-400 mt-1 block font-mono">{{ driver.dnfs }}</span>
+                <span class="text-lg font-black text-red-400 mt-1 block">{{ driver.dnfs }}</span>
             </div>
         </div>
     </div>

@@ -44,31 +44,31 @@
         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mt-4">
             <div class="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800 text-center">
                 <span class="text-[11px] text-zinc-500 block">گرندپری‌ها</span>
-                <span class="text-base font-black text-white mt-1 block font-mono">{{ team.grands_prix_entered }}</span>
+                <span class="text-base font-black text-white mt-1 block">{{ team.grands_prix_entered }}</span>
             </div>
             <div class="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800 text-center">
                 <span class="text-[11px] text-zinc-500 block">کل امتیازات</span>
-                <span class="text-base font-black text-white mt-1 block font-mono">{{ team.career_points|floatformat }}</span>
+                <span class="text-base font-black text-white mt-1 block">{{ team.career_points|floatformat }}</span>
             </div>
             <div class="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800 text-center">
                 <span class="text-[11px] text-zinc-500 block">بهترین رده مسابقه</span>
-                <span class="text-sm font-black text-white mt-1 block font-mono" dir="ltr">{{ team.highest_race_finish|default:"-" }}</span>
+                <span class="text-sm font-black text-white mt-1 block" dir="ltr">{{ team.highest_race_finish|default:"-" }}</span>
             </div>
             <div class="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800 text-center">
                 <span class="text-[11px] text-zinc-500 block">بهترین خط شروع</span>
-                <span class="text-sm font-black text-white mt-1 block font-mono" dir="ltr">{{ team.highest_grid_position|default:"-" }}</span>
+                <span class="text-sm font-black text-white mt-1 block" dir="ltr">{{ team.highest_grid_position|default:"-" }}</span>
             </div>
             <div class="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800 text-center">
                 <span class="text-[11px] text-zinc-500 block">پول پوزیشن</span>
-                <span class="text-base font-black text-white mt-1 block font-mono">{{ team.pole_positions }}</span>
+                <span class="text-base font-black text-white mt-1 block">{{ team.pole_positions }}</span>
             </div>
             <div class="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800 text-center">
                 <span class="text-[11px] text-zinc-500 block">پودیوم</span>
-                <span class="text-base font-black text-white mt-1 block font-mono">{{ team.podiums }}</span>
+                <span class="text-base font-black text-white mt-1 block">{{ team.podiums }}</span>
             </div>
             <div class="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800 text-center col-span-2 sm:col-span-1">
                 <span class="text-[11px] text-zinc-500 block">قهرمانی جهان</span>
-                <span class="text-base font-black text-amber-400 mt-1 block font-mono">{{ team.world_championships }}</span>
+                <span class="text-base font-black text-amber-400 mt-1 block">{{ team.world_championships }}</span>
             </div>
         </div>
 

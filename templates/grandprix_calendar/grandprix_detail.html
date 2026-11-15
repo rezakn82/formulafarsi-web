@@ -57,19 +57,19 @@
                             <th class="py-3.5 px-4">تیم</th>
 
                             {% if session.session_type == 'qualifying' or session.session_type == 'sprint_qualifying' or session.session_type == 'sprint_shootout' %}
-                                <th class="py-3.5 px-4 text-center font-mono">Q1</th>
-                                <th class="py-3.5 px-4 text-center font-mono">Q2</th>
-                                <th class="py-3.5 px-4 text-center font-mono">Q3</th>
+                                <th class="py-3.5 px-4 text-center">Q1</th>
+                                <th class="py-3.5 px-4 text-center">Q2</th>
+                                <th class="py-3.5 px-4 text-center">Q3</th>
                             {% else %}
                                 {% if session.session_type == 'race' or session.session_type == 'sprint' %}
                                 <th class="py-3.5 px-4 text-center">خط شروع</th>
                                 {% endif %}
                                 <th class="py-3.5 px-4 text-center">دورها</th>
-                                <th class="py-3.5 px-4 text-left font-mono">زمان / فاصله</th>
+                                <th class="py-3.5 px-4 text-left">زمان / فاصله</th>
                             {% endif %}
 
                             {% if session.session_type == 'race' or session.session_type == 'sprint' %}
-                                <th class="py-3.5 px-4 text-left font-mono">امتیاز</th>
+                                <th class="py-3.5 px-4 text-left">امتیاز</th>
                             {% endif %}
                         </tr>
                     </thead>
@@ -150,9 +150,9 @@
                     <span class="w-2 h-2 rounded-full {% if session.start_time < now %}bg-zinc-600{% else %}bg-red-500{% endif %}"></span>
                     <span class="font-bold text-zinc-200">{{ session.get_session_type_display }}</span>
                 </div>
-                <div class="flex items-center gap-4 text-xs md:text-sm font-mono text-zinc-400">
+                <div class="flex items-center gap-4 text-xs md:text-sm text-zinc-400">
                     <span>{{ session.start_time|jalali_date:"l j F" }}</span>
-                    <span class="bg-zinc-800 text-white px-2.5 py-1 rounded-md font-bold">{{ session.start_time|date:"H:i" }}</span>
+                    <span class="bg-zinc-800 text-white px-2.5 py-1 rounded-md font-bold font-mono">{{ session.start_time|date:"H:i" }}</span>
                 </div>
             </div>
             {% empty %}
@@ -171,23 +171,23 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
                 <span class="text-xs text-zinc-500 block">طول پیست</span>
-                <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.circuit.length_km }} km</span>
+                <span class="text-lg font-bold text-white mt-1 block">{{ grand_prix.circuit.length_km }} کیلومتر</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
                 <span class="text-xs text-zinc-500 block">تعداد دور گرندپری</span>
-                <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.laps_count|default:"-" }}</span>
+                <span class="text-lg font-bold text-white mt-1 block">{{ grand_prix.laps_count|default:"-" }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
                 <span class="text-xs text-zinc-500 block">مسافت مسابقه</span>
-                <span class="text-lg font-bold text-white mt-1 block font-mono">{% if grand_prix.race_distance_km %}{{ grand_prix.race_distance_km }} km{% else %}-{% endif %}</span>
+                <span class="text-lg font-bold text-white mt-1 block">{% if grand_prix.race_distance_km %}{{ grand_prix.race_distance_km }} کیلومتر{% else %}-{% endif %}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
                 <span class="text-xs text-zinc-500 block">اولین حضور در F1</span>
-                <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.first_grand_prix_year|default:"-" }}</span>
+                <span class="text-lg font-bold text-white mt-1 block">{{ grand_prix.first_grand_prix_year|default:"-" }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
                 <span class="text-xs text-zinc-500 block">تعداد پیچ‌ها</span>
-                <span class="text-lg font-bold text-white mt-1 block font-mono">{{ grand_prix.circuit.corners }}</span>
+                <span class="text-lg font-bold text-white mt-1 block">{{ grand_prix.circuit.corners }}</span>
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center">
                 <span class="text-xs text-zinc-500 block">برنده سال قبل</span>
@@ -195,7 +195,7 @@
             </div>
             <div class="bg-zinc-950/60 p-4 rounded-xl border border-zinc-800/80 text-center col-span-2">
                 <span class="text-xs text-zinc-500 block">رکورد پیست</span>
-                <span class="text-sm font-bold text-red-400 mt-1 block font-mono">{{ grand_prix.circuit.lap_record|default:"ثبت نشده" }}</span>
+                <span class="text-sm font-bold text-red-400 mt-1 block">{{ grand_prix.circuit.lap_record|default:"ثبت نشده" }}</span>
             </div>
         </div>
 
