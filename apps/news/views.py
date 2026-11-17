@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
-from apps.grandprix_calendar.models import GrandPrix, Season, Session
+from apps.grandprix_calendar.models import GrandPrix, Season, Session, SessionResult
 from apps.racing.models import Driver, DriverStanding, Team, TeamStanding
 
 from .models import Article, Category
@@ -12,39 +12,113 @@ from .models import Article, Category
 def home_view(request):
     now = timezone.now()
 
-    # ۱. نزدیک‌ترین سشن آینده
+    # ۱. نزدیک‌ترین سشن آینده + تمام جلسات آن گرندپری برای کارت «مسابقه بعدی»
     next_session = (
         Session.objects.filter(start_time__gte=now)
-        .select_related('grand_prix', 'grand_prix__circuit')
+        .select_related('grand_prix', 'grand_prix__circuit', 'grand_prix__season')
         .order_by('start_time')
         .first()
     )
+    next_gp_sessions = []
+    if next_session:
+        next_gp_sessions = list(
+            Session.objects.filter(grand_prix=next_session.grand_prix).order_by('start_time')
+        )
 
-    # ۲. آخرین اخبار منتشر شده
-    articles = Article.objects.filter(status='published').select_related('category', 'author')[:6]
-    featured_article = articles[0] if articles else None
-    recent_articles = articles[1:] if len(articles) > 1 else []
+    # ۲. اخبار اصلی (غیر کوتاه): ۱ خبر ویژه (تیتر یک) + تا ۶ خبر آخر
+    main_articles = list(
+        Article.objects.filter(status='published', is_short=False)
+        .select_related('category', 'author')
+        .order_by('-created_at')[:7]
+    )
+    featured_article = main_articles[0] if main_articles else None
+    recent_articles = main_articles[1:7] if len(main_articles) > 1 else []
 
-    # ۳. دریافت فصل جاری و ۵ راننده و ۵ تیم برتر
-    current_season = Season.objects.filter(is_current=True).first() or Season.objects.order_by('-year').first()
+    # ۳. اخبار کوتاه: تا ۶ خبر کوتاه
+    short_articles = list(
+        Article.objects.filter(status='published', is_short=True)
+        .select_related('category', 'author')
+        .order_by('-created_at')[:6]
+    )
+
+    # ۴. نوار اخبار فوری (فقط اخباری که ادمین تیک is_breaking آن‌ها را فعال کرده است)
+    ticker_items = list(
+        Article.objects.filter(status='published', is_breaking=True)
+        .only('title', 'slug', 'is_short', 'created_at')
+        .order_by('-created_at')[:12]
+    )
+
+    # ۵. دریافت فصل جاری[cite: 6]
+    current_season = (
+        Season.objects.filter(is_current=True).first()
+        or Season.objects.order_by('-year').first()
+    )
+
+    # ۶. آخرین مسابقه برگزارشده و نتایج آن
+    last_gp = None
+    last_session = None
+    last_gp_results = []
+
+    if current_season:
+        last_session = (
+            Session.objects.filter(
+                grand_prix__season=current_season,
+                results__isnull=False,
+            )
+            .select_related('grand_prix', 'grand_prix__circuit', 'grand_prix__season')
+            .order_by('-grand_prix__round_number', '-start_time')
+            .distinct()
+            .first()
+        )
+
+    if not last_session:
+        last_session = (
+            Session.objects.filter(results__isnull=False)
+            .select_related('grand_prix', 'grand_prix__circuit', 'grand_prix__season')
+            .order_by('-start_time')
+            .distinct()
+            .first()
+        )
+
+    if last_session:
+        last_gp = last_session.grand_prix
+        race_session = (
+            Session.objects.filter(grand_prix=last_gp, session_type='race', results__isnull=False)
+            .first()
+        ) or last_session
+        last_session = race_session
+        last_gp_results = list(
+            SessionResult.objects.filter(session=last_session)
+            .select_related('driver', 'team')
+            .order_by('position')[:10]
+        )
+
+    # ۷. جدول قهرمانی (رانندگان و سازندگان)
     top_drivers = []
     top_teams = []
     if current_season:
-        top_drivers = (
+        top_drivers = list(
             DriverStanding.objects.filter(season=current_season)
             .select_related('driver', 'driver__team')
-            .order_by('position')[:5]
+            .order_by('position')[:10]
         )
-        top_teams = (
+        top_teams = list(
             TeamStanding.objects.filter(season=current_season)
             .select_related('team')
-            .order_by('position')[:5]
+            .order_by('position')[:10]
         )
 
     context = {
+        'now': now,
         'next_session': next_session,
+        'next_gp_sessions': next_gp_sessions,
         'featured_article': featured_article,
         'recent_articles': recent_articles,
+        'short_articles': short_articles,
+        'ticker_items': ticker_items,
+        'last_gp': last_gp,
+        'last_session': last_session,
+        'last_gp_results': last_gp_results,
         'top_drivers': top_drivers,
         'top_teams': top_teams,
         'season': current_season,
@@ -53,7 +127,6 @@ def home_view(request):
 
 
 def article_detail_view(request, slug):
-    # دریافت خبر منتشر شده همراه با تیم‌ها و راننده‌های تگ‌شده با بهینه‌سازی کوئری
     article = get_object_or_404(
         Article.objects.prefetch_related('related_drivers', 'related_teams').select_related(
             'category',
@@ -65,7 +138,6 @@ def article_detail_view(request, slug):
         status='published',
     )
 
-    # پیدا کردن اخبار مرتبط بر اساس راننده یا تیم مشترک (بدون احتساب خود این خبر)
     related_articles = Article.objects.filter(
         status='published'
     ).filter(
@@ -84,14 +156,16 @@ def article_detail_view(request, slug):
 def articles_list_view(request):
     articles_queryset = Article.objects.filter(status='published').select_related('category', 'author')
 
-    # ۱. فیلتر بر اساس دسته‌بندی (در صورت انتخاب کاربر)
+    selected_type = request.GET.get('type')
+    if selected_type == 'short':
+        articles_queryset = articles_queryset.filter(is_short=True)
+
     category_slug = request.GET.get('category')
     selected_category = None
     if category_slug:
         articles_queryset = articles_queryset.filter(category__slug=category_slug)
         selected_category = category_slug
 
-    # ۲. موتور جستجو در عنوان، لید و متن
     search_query = request.GET.get('q')
     if search_query:
         articles_queryset = articles_queryset.filter(
@@ -100,18 +174,17 @@ def articles_list_view(request):
             Q(body__icontains=search_query)
         ).distinct()
 
-    # ۳. صفحه‌بندی (هر صفحه ۹ خبر)
     paginator = Paginator(articles_queryset, 9)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # دریافت تمام دسته‌بندی‌ها برای نمایش در نوار بالای آرشیو
     categories = Category.objects.all()
 
     context = {
         'page_obj': page_obj,
         'categories': categories,
         'selected_category': selected_category,
+        'selected_type': selected_type,
         'search_query': search_query,
     }
     return render(request, 'news/articles_list.html', context)
@@ -128,11 +201,9 @@ def global_search_view(request):
     total_results = 0
 
     if query:
-        # ۱. جستجو در فصل‌ها (اگر کاربر سال را به صورت عدد وارد کرده باشد، مثلا 2026)
         if query.isdigit():
             seasons = list(Season.objects.filter(year=int(query)))
 
-        # ۲. جستجو در گرندپری‌ها، پیست‌ها و کشورها
         grands_prix = list(
             GrandPrix.objects.select_related('season', 'circuit')
             .filter(
@@ -144,7 +215,6 @@ def global_search_view(request):
             .order_by('-season__year', 'round_number')[:12]
         )
 
-        # ۳. جستجو در رانندگان (نام، نام خانوادگی، کد سه حرفی، کشور، تیم یا شماره راننده)
         driver_q = (
             Q(first_name__icontains=query)
             | Q(last_name__icontains=query)
@@ -161,7 +231,6 @@ def global_search_view(request):
             .order_by('permanent_number')[:12]
         )
 
-        # ۴. جستجو در تیم‌ها (نام، نام تجاری، مقر، مدیر تیم، پیشرانه)
         teams = list(
             Team.objects.prefetch_related('drivers')
             .filter(
@@ -174,7 +243,6 @@ def global_search_view(request):
             .order_by('name')[:10]
         )
 
-        # ۵. جستجو در اخبار و مقالات منتشر شده
         articles = list(
             Article.objects.filter(status='published')
             .select_related('category', 'author')

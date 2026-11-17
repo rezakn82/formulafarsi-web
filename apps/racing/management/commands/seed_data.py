@@ -18,7 +18,7 @@ from apps.racing.models import Circuit, Driver, DriverStanding, Team, TeamStandi
 
 
 def create_placeholder_image(filename: str, width: int, height: int, color: str) -> ContentFile:
-    """ساخت تصویر تستی در حافظه رم با Pillow برای جلوگیری از خطای نبود عکس در قالب‌ها."""
+    """ساخت تصویر تستی در حافظه رم با Pillow برای جلوگیری از خطای نبود عکس در قالب‌ها.[cite: 6]"""
     img = Image.new("RGB", (width, height), color=color)
     draw = ImageDraw.Draw(img)
     draw.rectangle([10, 10, width - 10, height - 10], outline="#ffffff", width=3)
@@ -28,7 +28,7 @@ def create_placeholder_image(filename: str, width: int, height: int, color: str)
 
 
 class Command(BaseCommand):
-    help = "تولید دیتای تستی کامل برای وبسایت فرمولافارسی (شامل آمار تیم/راننده/گرندپری، راننده رزرو و آرشیو نتایج)"
+    help = "تولید دیتای تستی کامل برای وبسایت فرمولافارسی (شامل آمار تیم/راننده/گرندپری، راننده رزرو، آرشیو نتایج، اخبار کوتاه و اخبار فوری)"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -53,7 +53,7 @@ class Command(BaseCommand):
             Team.objects.all().delete()
             Circuit.objects.all().delete()
 
-        # ۱. ساخت کاربر نویسنده / ادمین
+        # ۱. ساخت کاربر نویسنده / ادمین[cite: 6]
         admin_user, created = User.objects.get_or_create(
             username="admin",
             defaults={
@@ -68,7 +68,7 @@ class Command(BaseCommand):
             admin_user.set_password("admin1234")
             admin_user.save()
 
-        # ۲. ساخت فصل‌ها و تست خودکار قابلیت Single Active Season Enforcement
+        # ۲. ساخت فصل‌ها و تست خودکار قابلیت Single Active Season Enforcement[cite: 6]
         self.stdout.write("در حال تست قابلیت تک‌فصلی (Single Active Season)...")
         season_2024, _ = Season.objects.update_or_create(year=2024, defaults={"is_current": False})
         season_2025, _ = Season.objects.update_or_create(year=2025, defaults={"is_current": True})
@@ -85,7 +85,7 @@ class Command(BaseCommand):
                 self.style.ERROR("✘ خطا در تست فصل جاری: بیش از یک فصل فعال وجود دارد!")
             )
 
-        # ۳. ساخت ۵ تیم واقعی فرمول یک به همراه آمار کامل تاریخچه
+        # ۳. ساخت ۵ تیم واقعی فرمول یک به همراه آمار کامل تاریخچه[cite: 6]
         teams_data = [
             ("فراری", "Scuderia Ferrari", "مارانلو، ایتالیا", "فردریک واسور", "فراری", "#E80020", 1100, "10240.5", "1 (x248)", "1 (x253)", 253, 825, 16),
             ("ردبول", "Oracle Red Bull Racing", "میلتون کینز، انگلستان", "کریستین هورنر", "هوندا RBPT", "#3671C6", 395, "7850.0", "1 (x122)", "1 (x103)", 103, 282, 6),
@@ -117,7 +117,7 @@ class Command(BaseCommand):
             )
             teams.append(team)
 
-        # ۴. ساخت ۱۰ راننده اصلی + ۱ راننده رزرو تستی (الیور برمن) با آمار کامل دوران حرفه‌ای
+        # ۴. ساخت ۱۰ راننده اصلی + ۱ راننده رزرو تستی (الیور برمن) با آمار کامل دوران حرفه‌ای[cite: 6]
         drivers_data = [
             ("شارل", "لکلرک", 16, "LEC", "موناکو", teams[0], True, 149, "1430.0", "1 (x8)", "1 (x26)", 26, 43, 0, 21),
             ("لوئیس", "همیلتون", 44, "HAM", "بریتانیا", teams[0], True, 356, "4862.5", "1 (x105)", "1 (x104)", 104, 202, 7, 32),
@@ -129,7 +129,6 @@ class Command(BaseCommand):
             ("آندره‌آ کیمی", "آنتونلی", 12, "ANT", "ایتالیا", teams[3], True, 2, "18.0", "4 (x1)", "5 (x1)", 0, 0, 0, 0),
             ("فرناندو", "آلونسو", 14, "ALO", "اسپانیا", teams[4], True, 404, "2337.0", "1 (x32)", "1 (x22)", 22, 106, 2, 79),
             ("لنس", "استرول", 18, "STR", "کانادا", teams[4], True, 167, "292.0", "3 (x3)", "1 (x1)", 1, 3, 0, 31),
-            # راننده رزرو (نباید در صفحه رانندگان و لیست رانندگان تیم فراری دیده شود، اما در نتایج قابل استفاده است)
             ("الیور", "برمن", 87, "BEA", "بریتانیا", teams[0], False, 3, "7.0", "7 (x1)", "10 (x1)", 0, 0, 0, 0),
         ]
         drivers = []
@@ -162,7 +161,7 @@ class Command(BaseCommand):
             else:
                 reserve_driver = driver
 
-        # ۵. ساخت جدول رده‌بندی رانندگان و تیم‌ها برای هر دو فصل ۲۰۲۵ و ۲۰۲۶
+        # ۵. ساخت جدول رده‌بندی رانندگان و تیم‌ها برای هر دو فصل ۲۰۲۵ و ۲۰۲۶[cite: 6]
         points_scale_2026 = [44, 36, 30, 24, 20, 16, 12, 8, 4, 1]
         points_scale_2025 = [410, 385, 340, 290, 250, 190, 140, 95, 60, 22]
 
@@ -206,7 +205,6 @@ class Command(BaseCommand):
                 },
             )
 
-        # تابع کمکی برای پر کردن نتایج یک سشن
         def populate_session_results(session_obj, ordered_drivers):
             race_pts = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
             sprint_pts = [8, 7, 6, 5, 4, 3, 2, 1, 0, 0]
@@ -257,7 +255,7 @@ class Command(BaseCommand):
                     },
                 )
 
-        # ۶. ساخت پیست‌ها، گرندپری‌ها (با اطلاعات تکمیلی) و سشن‌ها برای فصل جاری (۲۰۲۶)
+        # ۶. ساخت پیست‌ها، گرندپری‌ها و سشن‌ها برای فصل جاری (۲۰۲۶)[cite: 6]
         now = timezone.now()
         gp_configs = [
             (1, "گرندپری بحرین", "پیست بین‌المللی صخیر", "صخیر", "بحرین", "5.412", 15, -14, False, "مکس ورستپن (ردبول)", 57, 2004, "308.238"),
@@ -314,14 +312,13 @@ class Command(BaseCommand):
 
                 if offset_days < 0:
                     shuffled_drivers = list(drivers)
-                    # حضور راننده رزرو (الیور برمن) در تمرین اول راند ۱ به جای همیلتون برای تست راننده رزرو
                     if round_num == 1 and s_type == "fp1" and reserve_driver:
                         shuffled_drivers[1] = reserve_driver
                     elif round_num == 2:
                         shuffled_drivers[0], shuffled_drivers[2] = shuffled_drivers[2], shuffled_drivers[0]
                     populate_session_results(session_obj, shuffled_drivers)
 
-        # ۷. ساخت یک گرندپری آرشیوی در فصل ۲۰۲۵ (برای تست تغییر فصل ?season=2025)
+        # ۷. ساخت یک گرندپری آرشیوی در فصل ۲۰۲۵[cite: 6]
         old_gp_date = (now - timedelta(days=300)).date()
         gp_2025, _ = GrandPrix.objects.update_or_create(
             season=season_2025,
@@ -345,8 +342,8 @@ class Command(BaseCommand):
             )
             populate_session_results(old_session, list(reversed(drivers)))
 
-        # ۸. ساخت دسته‌بندی‌ها و ۱۲ خبر فارسی
-        cat_titles = ["گزارش مسابقه", "تحلیل فنی", "نقل و انتقالات", "مصاحبه اختصاصی"]
+        # ۸. ساخت دسته‌بندی‌ها و ۱۲ خبر اصلی
+        cat_titles = ["گزارش مسابقه", "تحلیل فنی", "نقل و انتقالات", "مصاحبه اختصاصی", "خبر کوتاه"]
         categories = []
         for title in cat_titles:
             cat, _ = Category.objects.update_or_create(
@@ -367,7 +364,7 @@ class Command(BaseCommand):
                 tagged_drivers = [drivers[2], drivers[3]]
                 tagged_teams = [teams[1]]
             else:
-                title = f"{fake.sentence(nb_words=6).rstrip('.')} (خبر آزمایشی {i})"
+                title = f"{fake.sentence(nb_words=6).rstrip('.')} (خبر اصلی {i})"
                 target_gp = grands_prix[i % len(grands_prix)]
                 tagged_drivers = random.sample(drivers, k=2)
                 tagged_teams = random.sample(teams, k=2)
@@ -377,7 +374,9 @@ class Command(BaseCommand):
                 defaults={
                     "title": title,
                     "author": admin_user,
-                    "category": categories[i % len(categories)],
+                    "category": categories[i % 4],
+                    "is_short": False,
+                    "is_breaking": i in (1, 12),  # انتخاب ۲ خبر اصلی برای نوار اخبار فوری
                     "lead": fake.paragraph(nb_sentences=3),
                     "body": (
                         f"<h2>{fake.sentence(nb_words=5)}</h2>"
@@ -396,8 +395,85 @@ class Command(BaseCommand):
             art.related_drivers.set(tagged_drivers)
             art.related_teams.set(tagged_teams)
 
+        # ۹. ساخت ۶ خبر کوتاه (is_short=True) که ۳ مورد آن در نوار اخبار فوری (is_breaking=True) هم هستند
+        short_news_samples = [
+            (
+                "بسته آپدیت آیرودینامیکی جدید فراری برای گرندپری استرالیا تایید شد",
+                "مهندسان مارانلو اعلام کردند کف جدید خودرو SF-26 در تمرین اول ملبورن روی خودروی شارل لکلرک و لوئیس همیلتون تست خواهد شد.",
+                "",
+                "#E80020",
+                [drivers[0], drivers[1]],
+                [teams[0]],
+                True,
+            ),
+            (
+                "ورستپن: تنظیمات شبیه‌ساز ردبول برای پیست آلبرت پارک امیدوارکننده است",
+                "قهرمان چهار دوره جهان پس از جلسات شبیه‌ساز در میلتون کینز ابراز امیدواری کرد که مشکل کم‌فرمانی خودرو در پیچ‌های سرعت متوسط برطرف شده باشد.",
+                "",
+                "#3671C6",
+                [drivers[2]],
+                [teams[1]],
+                True,
+            ),
+            (
+                "پیرلی ترکیبات لاستیک نرم‌تر C3، C4 و C5 را برای آخرهفته ملبورن انتخاب کرد",
+                "تامین‌کننده رسمی تایرهای فرمول یک با هدف افزایش تنوع استراتژی پیت‌استاپ، یک پله ترکیبات نرم‌تر نسبت به سال گذشته به استرالیا می‌آورد.",
+                "<p>پیرلی رسماً اعلام کرد تیم‌ها در گرندپری استرالیا به ترکیبات C3 (هارد)، C4 (مدیوم) و C5 (سافت) دسترسی خواهند داشت.</p>",
+                "#d97706",
+                [],
+                [],
+                False,
+            ),
+            (
+                "آندره‌آ استلا: مک‌لارن هنوز به سقف پتانسیل خودروی ۲۰۲۶ نرسیده است",
+                "مدیر تیم مک‌لارن تاکید کرد فاصله نزدیک تیم‌ها در تعیین خط نشان می‌دهد کوچک‌ترین جزئیات در مدیریت دمای تایر سرنوشت‌ساز خواهد بود.",
+                "",
+                "#FF8000",
+                [drivers[4], drivers[5]],
+                [teams[2]],
+                True,
+            ),
+            (
+                "رکوردشکنی فروش بلیت گرندپری استرالیا؛ بیش از ۴۵۰ هزار تماشاگر در آلبرت پارک",
+                "برگزارکنندگان مسابقه ملبورن از فروش کامل تمامی ظرفیت سکوهای اصلی برای روز یکشنبه خبر دادند.",
+                "",
+                "#065f46",
+                [],
+                [],
+                False,
+            ),
+            (
+                "توتو وولف عملکرد کیمی آنتونلی را در دو راند نخست فصل ستود",
+                "مدیر تیم مرسدس معتقد است سرعت تطبیق‌پذیری راننده جوان ایتالیایی با قوانین جدید فراتر از انتظارات مهندسان براکلی بوده است.",
+                "<p>توتو وولف در مصاحبه کوتاه خود پس از مسابقه جده گفت آنتونلی هیچ اشتباه بزرگی مرتکب نشده و داده‌های ارزشمندی به تیم داده است.</p>",
+                "#27F4D2",
+                [drivers[7]],
+                [teams[3]],
+                False,
+            ),
+        ]
+
+        for idx, (s_title, s_lead, s_body, s_color, s_drivers, s_teams, is_brk) in enumerate(short_news_samples, start=1):
+            short_art, _ = Article.objects.update_or_create(
+                slug=f"short-f1-news-{idx}",
+                defaults={
+                    "title": s_title,
+                    "author": admin_user,
+                    "category": categories[4],
+                    "is_short": True,
+                    "is_breaking": is_brk,
+                    "lead": s_lead,
+                    "body": s_body,
+                    "featured_image": create_placeholder_image(f"short_news_{idx}.jpg", 800, 600, s_color),
+                    "status": "published",
+                    "related_grand_prix": grands_prix[2],
+                },
+            )
+            short_art.related_drivers.set(s_drivers)
+            short_art.related_teams.set(s_teams)
+
         self.stdout.write(
-            self.style.SUCCESS("✔ راننده رزرو تستی (الیور برمن #87) ساخته شد و در تمرین اول بحرین ثبت گردید!")
+            self.style.SUCCESS("✔ راننده رزرو، ۶ خبر کوتاه و ۵ خبر فوری (is_breaking=True) ساخته شدند!")
         )
         self.stdout.write(self.style.SUCCESS("✅ دیتای تستی فرمولافارسی با موفقیت ساخته شد!"))
         self.stdout.write(self.style.SUCCESS("👤 یوزر ادمین: admin | رمز عبور: admin1234"))

@@ -3,7 +3,6 @@
 {% block title %}فرمولافارسی{% endblock %}
 
 {% block content %}
-
 <style>
     @keyframes border-spin {
         from { transform: rotate(0deg); }
@@ -11,7 +10,7 @@
     }
     .next-session-border {
         position: relative;
-        background-color: #27272a; /* رنگ ثابت کادر (zinc-800) در بخش‌هایی که نور نیست */
+        background-color: #27272a;
     }
     .next-session-border::before {
         content: "";
@@ -21,246 +20,558 @@
             from 0deg,
             transparent 0%,
             transparent 78%,
-            #a1a1aa 88%,
+            #ef4444 88%,
             #ffffff 95%,
-            #a1a1aa 98%,
+            #ef4444 98%,
             transparent 100%
         );
         animation: border-spin 4s linear infinite;
         z-index: 0;
     }
+
+    /* انیمیشن نوار نقاله بی‌نهایت برای نوار اخبار فوری (متناسب با زبان فارسی RTL) */
+    @keyframes ticker-rtl {
+        0% {
+            transform: translate3d(0, 0, 0);
+        }
+        100% {
+            transform: translate3d(50%, 0, 0);
+        }
+    }
+    .ticker-viewport {
+        overflow: hidden;
+        position: relative;
+        flex: 1;
+        mask-image: linear-gradient(to left, transparent, black 4%, black 96%, transparent);
+        -webkit-mask-image: linear-gradient(to left, transparent, black 4%, black 96%, transparent);
+    }
+    .ticker-track {
+        display: flex;
+        width: max-content;
+        animation: ticker-rtl 32s linear infinite;
+    }
+    .ticker-viewport:hover .ticker-track {
+        animation-play-state: paused;
+    }
 </style>
 
-<!-- ویجت گرندپری و سشن بعدی (نور قرمز صرفاً روی خط دور کادر) -->
-{% if next_session %}
-<div class="mb-10 p-[2px] rounded-2xl overflow-hidden shadow-xl next-session-border">
-    <!-- لایه bg-zinc-950 کاملاً مات است و اجازه نمی‌دهد نور به داخل کادر نفوذ کند -->
-    <div class="bg-zinc-950 rounded-[14px] relative z-10 overflow-hidden">
-        <div class="bg-gradient-to-r from-zinc-900 via-zinc-900 to-red-950/40 p-6 relative overflow-hidden">
-            <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black italic pointer-events-none">F1</div>
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
-                        <span class="text-xs uppercase font-bold text-red-500 tracking-wider">ایستگاه بعدی:</span>
-                    </div>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-white">{{ next_session.grand_prix.name }}</h2>
-                    <p class="text-zinc-400 text-sm mt-1">
-                        {{ next_session.get_session_type_display }} • پیست {{ next_session.grand_prix.circuit.name }} ({{ next_session.grand_prix.circuit.country }})
-                    </p>
-                </div>
+<div class="space-y-12">
 
-                <!-- تایمر معکوس -->
-                <div class="flex items-center gap-3 text-center" id="countdown-box" data-time="{{ next_session.start_time|date:'c' }}"> 
-                    <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                        <span id="seconds" class="text-xl font-black text-red-500">00</span>
-                        <span class="block text-[10px] text-zinc-400">ثانیه</span>
-                    </div>
-                    <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                        <span id="minutes" class="text-xl font-black text-white">00</span>
-                        <span class="block text-[10px] text-zinc-400">دقیقه</span>
-                    </div>
-                    <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                        <span id="hours" class="text-xl font-black text-white">00</span>
-                        <span class="block text-[10px] text-zinc-400">ساعت</span>
-                    </div>
-                    <div class="bg-zinc-800/80 px-3 py-2 rounded-lg border border-zinc-700 min-w-[55px]">
-                        <span id="days" class="text-xl font-black text-white">00</span>
-                        <span class="block text-[10px] text-zinc-400">روز</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- بخش اخبار -->
-<div class="space-y-6">
-    <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-            <span class="w-1.5 h-6 bg-red-600 rounded-sm"></span>
-            آخرین اخبار
-        </h3>
-    </div>
-
-    {% if featured_article %}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- خبر ویژه (بزرگ) -->
-        <div class="lg:col-span-7 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-700 transition group flex flex-col justify-between">
-            <div>
-                {% if featured_article.featured_image %}
-                <div class="aspect-video w-full overflow-hidden bg-zinc-800">
-                    <img src="{{ featured_article.featured_image.url }}" alt="{{ featured_article.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                </div>
-                {% endif %}
-                <div class="p-5">
-                    {% if featured_article.category %}
-                    <span class="text-xs bg-red-600/10 text-red-400 border border-red-500/20 px-2.5 py-1 rounded-md">{{ featured_article.category.title }}</span>
-                    {% endif %}
-                    <a href="{{ featured_article.get_absolute_url }}">
-                        <h4 class="text-xl font-bold text-white mt-3 group-hover:text-red-400 transition">{{ featured_article.title }}</h4>
-                    </a>
-                    
-                    <p class="text-zinc-400 text-sm mt-2 line-clamp-2 leading-relaxed">{{ featured_article.lead }}</p>
-                </div>
-            </div>
-            <div class="px-5 pb-5 text-xs text-zinc-500 flex justify-between items-center border-t border-zinc-800/60 pt-3">
-                <span>توسط {{ featured_article.author.get_full_name|default:featured_article.author.username }}</span>
-                <span>{{ featured_article.created_at|jalali_date:"j F Y" }}</span>
-            </div>
+    <!-- ===================================================================== -->
+    <!-- ۱. نوار اخبار فوری (نوار نقاله متحرک در لوپ بی‌نهایت)                  -->
+    <!-- ===================================================================== -->
+    {% if ticker_items %}
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-2.5 flex items-center gap-3 overflow-hidden shadow-lg">
+        <div class="bg-red-600 text-white text-xs font-black px-3.5 py-1.5 rounded-xl flex items-center gap-2 flex-shrink-0 shadow z-10">
+            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <span>اخبار فوری</span>
         </div>
 
-        <!-- اخبار کناری -->
-        <div class="lg:col-span-5 flex flex-col gap-4">
-            {% for item in recent_articles %}
-            <a href="{{ item.get_absolute_url }}" class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 flex gap-4 hover:border-zinc-700 transition group">
-                {% if item.featured_image %}
-                <img src="{{ item.featured_image.url }}" alt="{{ item.title }}" class="w-24 h-24 object-cover rounded-lg flex-shrink-0 bg-zinc-800">
-                {% endif %}
-                <div class="flex flex-col justify-between">
-                    <div>
-                        {% if item.category %}
-                        <span class="text-[11px] text-zinc-400">{{ item.category.title }}</span>
+        <div class="ticker-viewport">
+            <div class="ticker-track">
+                <!-- گروه اول آیتم‌ها -->
+                <div class="flex items-center gap-8 px-4 whitespace-nowrap text-xs py-1">
+                    {% for item in ticker_items %}
+                    <a href="{{ item.get_absolute_url }}" class="text-zinc-200 hover:text-red-400 transition inline-flex items-center gap-2 font-medium">
+                        {% if item.is_short %}
+                        <span class="text-[10px] bg-red-600/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-bold">کوتاه</span>
                         {% endif %}
-                        <h5 class="text-sm font-semibold text-white group-hover:text-red-400 transition line-clamp-2 mt-1">{{ item.title }}</h5>
-                    </div>
-                    <span class="text-[11px] text-zinc-500 mt-2">{{ item.created_at|jalali_date:"j F Y" }}</span>
+                        <span>{{ item.title }}</span>
+                    </a>
+                    <span class="text-red-500/70 select-none">✦</span>
+                    {% endfor %}
                 </div>
-            </a>
-            {% empty %}
-            <p class="text-zinc-500 text-sm">خبر دیگری وجود ندارد.</p>
-            {% endfor %}
+                <!-- کپی دوم آیتم‌ها برای ایجاد لوپ بی‌نهایت بدون پرش -->
+                <div class="flex items-center gap-8 px-4 whitespace-nowrap text-xs py-1" aria-hidden="true">
+                    {% for item in ticker_items %}
+                    <a href="{{ item.get_absolute_url }}" tabindex="-1" class="text-zinc-200 hover:text-red-400 transition inline-flex items-center gap-2 font-medium">
+                        {% if item.is_short %}
+                        <span class="text-[10px] bg-red-600/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-bold">کوتاه</span>
+                        {% endif %}
+                        <span>{{ item.title }}</span>
+                    </a>
+                    <span class="text-red-500/70 select-none">✦</span>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
-    </div>
-    {% else %}
-    <div class="text-center py-16 bg-zinc-900/40 rounded-2xl border border-zinc-800 text-zinc-500">
-        <p>هنوز هیچ خبری در سایت منتشر نشده است.</p>
-        <p class="text-xs mt-1">از طریق پنل ادمین اولین خبر خود را اضافه کنید.</p>
     </div>
     {% endif %}
-</div>
-{% if top_drivers or top_teams %}
-<section class="mt-12 space-y-6">
-    <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="w-2 h-2 rounded-full bg-red-600"></span>
-                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">STANDINGS LEADERS</span>
-            </div>
-            <h3 class="text-xl font-black text-white">برترین‌های جدول قهرمانی (فصل {{ season.year }})</h3>
-        </div>
-        <a href="{% url 'racing:standings' %}" class="text-xs font-bold text-red-500 hover:text-red-400 transition flex items-center gap-1">
-            <span>مشاهده جدول کامل</span>
-            <span class="text-sm">←</span>
-        </a>
-    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- جدول عمودی ۵ راننده برتر -->
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
-            <div class="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
-                <h4 class="text-sm font-bold text-white flex items-center gap-2">
-                    <span class="w-1.5 h-4 bg-red-600 rounded-sm"></span>
-                    ۵ راننده برتر
-                </h4>
-                <a href="{% url 'racing:standings' %}" class="text-[11px] text-zinc-400 hover:text-white transition">جدول رانندگان ←</a>
+    <!-- ===================================================================== -->
+    <!-- ۲. بخش بالایی: تیتر یک / خبر ویژه (راست) + مسابقه بعدی و جلسات (چپ)   -->
+    <!-- ===================================================================== -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+
+        <!-- ستون راست: تیتر یک / خبر ویژه با تصویر بزرگ (۷ ستون) -->
+        <div class="lg:col-span-7 flex flex-col">
+            {% if featured_article %}
+            <article class="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl overflow-hidden transition group flex flex-col justify-between h-full shadow-xl">
+                <div>
+                    {% if featured_article.featured_image %}
+                    <a href="{{ featured_article.get_absolute_url }}" class="block aspect-video w-full overflow-hidden bg-zinc-950 relative">
+                        <img src="{{ featured_article.featured_image.url }}" alt="{{ featured_article.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute top-4 right-4 flex items-center gap-2">
+                            <span class="bg-red-600 text-white text-xs font-black px-3 py-1 rounded-lg shadow">تیتر یک</span>
+                            {% if featured_article.category %}
+                            <span class="bg-zinc-950/90 backdrop-blur text-zinc-200 border border-zinc-700 text-xs font-bold px-3 py-1 rounded-lg">
+                                {{ featured_article.category.title }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    <div class="p-6">
+                        <a href="{{ featured_article.get_absolute_url }}">
+                            <h1 class="text-xl md:text-2xl lg:text-3xl font-black text-white group-hover:text-red-400 transition leading-snug">
+                                {{ featured_article.title }}
+                            </h1>
+                        </a>
+                        <p class="text-zinc-400 text-sm mt-3 line-clamp-3 leading-relaxed">
+                            {{ featured_article.lead }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
+                    <span>نویسنده: <strong class="text-zinc-200">{{ featured_article.author.get_full_name|default:featured_article.author.username }}</strong></span>
+                    <div class="flex items-center gap-4">
+                        <span>{{ featured_article.created_at|jalali_date:"j F Y" }}</span>
+                        <a href="{{ featured_article.get_absolute_url }}" class="text-red-500 font-bold hover:text-red-400">ادامه خبر ←</a>
+                    </div>
+                </div>
+            </article>
+            {% else %}
+            <div class="bg-zinc-900/40 border border-zinc-800 rounded-2xl p-12 flex flex-col items-center justify-center text-center h-full text-zinc-500">
+                <p class="font-bold text-base text-zinc-300">هنوز خبر ویژه‌ای منتشر نشده است</p>
+                <p class="text-xs mt-1">از طریق پنل مدیریت اولین خبر اصلی را منتشر کنید.</p>
             </div>
+            {% endif %}
+        </div>
+
+        <!-- ستون چپ: مسابقه بعدی + شمارش معکوس + زمان جلسات (۵ ستون) -->
+        <div class="lg:col-span-5 flex flex-col">
+            {% if next_session %}
+            <div class="p-[2px] rounded-2xl overflow-hidden shadow-xl next-session-border h-full flex flex-col">
+                <div class="bg-zinc-950 rounded-[14px] relative z-10 overflow-hidden flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-950">
+                    <div class="space-y-5">
+                        <!-- عنوان گرندپری بعدی -->
+                        <div class="flex items-start justify-between gap-3 border-b border-zinc-800 pb-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+                                    <span class="text-xs uppercase font-bold text-red-500 tracking-wider">مسابقه بعدی • راند {{ next_session.grand_prix.round_number }}</span>
+                                </div>
+                                <h2 class="text-xl md:text-2xl font-black text-white">
+                                    <a href="{% url 'grandprix_calendar:grandprix_detail' next_session.grand_prix.round_number %}?season={{ next_session.grand_prix.season.year }}" class="hover:text-red-400 transition">
+                                        {{ next_session.grand_prix.name }}
+                                    </a>
+                                </h2>
+                                <p class="text-zinc-400 text-xs mt-1">
+                                    📍 {{ next_session.grand_prix.circuit.name }} ({{ next_session.grand_prix.circuit.country }})
+                                </p>
+                            </div>
+                            <span class="text-[11px] bg-zinc-800 border border-zinc-700 text-zinc-300 px-2.5 py-1 rounded-lg font-bold whitespace-nowrap">
+                                {{ next_session.get_session_type_display }}
+                            </span>
+                        </div>
+
+                        <!-- شمارش معکوس تا جلسه بعدی -->
+                        <div>
+                            <span class="text-[11px] text-zinc-400 block mb-2">شمارش معکوس تا {{ next_session.get_session_type_display }}:</span>
+                            <div class="grid grid-cols-4 gap-2.5 text-center" id="countdown-box" data-time="{{ next_session.start_time|date:'c' }}">
+                                <div class="bg-zinc-900/90 px-2 py-2.5 rounded-xl border border-zinc-800">
+                                    <span id="seconds" class="text-xl md:text-2xl font-black font-mono text-red-500">00</span>
+                                    <span class="block text-[10px] text-zinc-400 mt-0.5">ثانیه</span>
+                                </div>
+                                <div class="bg-zinc-900/90 px-2 py-2.5 rounded-xl border border-zinc-800">
+                                    <span id="minutes" class="text-xl md:text-2xl font-black font-mono text-white">00</span>
+                                    <span class="block text-[10px] text-zinc-400 mt-0.5">دقیقه</span>
+                                </div>
+                                <div class="bg-zinc-900/90 px-2 py-2.5 rounded-xl border border-zinc-800">
+                                    <span id="hours" class="text-xl md:text-2xl font-black font-mono text-white">00</span>
+                                    <span class="block text-[10px] text-zinc-400 mt-0.5">ساعت</span>
+                                </div>
+                                <div class="bg-zinc-900/90 px-2 py-2.5 rounded-xl border border-zinc-800">
+                                    <span id="days" class="text-xl md:text-2xl font-black font-mono text-white">00</span>
+                                    <span class="block text-[10px] text-zinc-400 mt-0.5">روز</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- لیست زمان‌بندی جلسات آخرهفته -->
+                        <div class="space-y-2 pt-1">
+                            <h3 class="text-xs font-bold text-zinc-300 flex items-center justify-between">
+                                <span>برنامه جلسات آخرهفته (به وقت تهران)</span>
+                                <a href="{% url 'grandprix_calendar:grandprix_detail' next_session.grand_prix.round_number %}?season={{ next_session.grand_prix.season.year }}" class="text-[11px] text-red-500 hover:underline">جزئیات راند ←</a>
+                            </h3>
+                            <div class="divide-y divide-zinc-800/70 bg-zinc-900/50 border border-zinc-800/80 rounded-xl overflow-hidden text-xs">
+                                {% for s in next_gp_sessions %}
+                                <div class="px-3.5 py-2.5 flex items-center justify-between {% if s.id == next_session.id %}bg-red-600/10 text-white font-bold{% elif s.start_time < now %}text-zinc-500{% else %}text-zinc-300{% endif %}">
+                                    <div class="flex items-center gap-2">
+                                        {% if s.id == next_session.id %}
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                        {% endif %}
+                                        <span>{{ s.get_session_type_display }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 font-mono text-[11px]">
+                                        <span>{{ s.start_time|jalali_date:"l j F" }}</span>
+                                        <span class="bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 text-zinc-200">{{ s.start_time|date:"H:i" }}</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 mt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs">
+                        <span class="text-zinc-500">تقویم فصل {{ next_session.grand_prix.season.year }}</span>
+                        <a href="{% url 'grandprix_calendar:calendar_list' %}" class="text-red-500 font-bold hover:text-red-400 transition">مشاهده کامل تقویم ←</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col items-center justify-center text-center h-full text-zinc-500">
+                <p class="font-bold text-zinc-300">جلسه پیش‌رویی در تقویم ثبت نشده است</p>
+                <a href="{% url 'grandprix_calendar:calendar_list' %}" class="text-xs text-red-500 hover:underline mt-2">مشاهده آرشیو تقویم مسابقات ←</a>
+            </div>
+            {% endif %}
+        </div>
+
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ۳. آخرین اخبار (خبر اصلی - تا ۶ خبر آخر بغیر از اخبار کوتاه)           -->
+    <!-- ===================================================================== -->
+    <section class="space-y-6">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                    <span class="text-xs uppercase font-bold text-red-500 tracking-wider">LATEST STORIES</span>
+                </div>
+                <h2 class="text-xl md:text-2xl font-black text-white">آخرین اخبار</h2>
+            </div>
+            <a href="{% url 'news:articles_list' %}" class="text-xs font-bold text-red-500 hover:text-red-400 transition flex items-center gap-1">
+                <span>آرشیو کامل اخبار</span>
+                <span>←</span>
+            </a>
+        </div>
+
+        {% if recent_articles %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for article in recent_articles %}
+            <a href="{{ article.get_absolute_url }}" class="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl overflow-hidden transition group flex flex-col justify-between shadow-lg">
+                <div>
+                    {% if article.featured_image %}
+                    <div class="aspect-video w-full overflow-hidden bg-zinc-950">
+                        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    </div>
+                    {% endif %}
+                    <div class="p-5">
+                        {% if article.category %}
+                        <span class="text-[11px] bg-red-600/10 text-red-400 border border-red-500/20 px-2.5 py-0.5 rounded font-bold">
+                            {{ article.category.title }}
+                        </span>
+                        {% endif %}
+                        <h3 class="text-base font-bold text-white mt-2.5 group-hover:text-red-400 transition line-clamp-2 leading-snug">
+                            {{ article.title }}
+                        </h3>
+                        <p class="text-xs text-zinc-400 mt-2 line-clamp-2 leading-relaxed">
+                            {{ article.lead }}
+                        </p>
+                    </div>
+                </div>
+                <div class="px-5 py-3 border-t border-zinc-800/80 bg-zinc-950/40 flex items-center justify-between text-[11px] text-zinc-500">
+                    <span>{{ article.author.get_full_name|default:article.author.username }}</span>
+                    <span>{{ article.created_at|jalali_date:"j F Y" }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-10 bg-zinc-900/40 rounded-2xl border border-zinc-800 text-zinc-500 text-sm">
+            خبر اصلی دیگری ثبت نشده است.
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ۴. اخبار کوتاه (۴ تا ۶ خبر کوتاه با تصویر، تایتل و لید)                -->
+    <!-- ===================================================================== -->
+    <section class="space-y-6">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                    <span class="text-xs uppercase font-bold text-red-500 tracking-wider">SHORT & QUICK UPDATES</span>
+                </div>
+                <h2 class="text-xl md:text-2xl font-black text-white">اخبار کوتاه</h2>
+            </div>
+            <a href="{% url 'news:articles_list' %}?type=short" class="text-xs font-bold text-red-500 hover:text-red-400 transition flex items-center gap-1">
+                <span>همه اخبار کوتاه</span>
+                <span>←</span>
+            </a>
+        </div>
+
+        {% if short_articles %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for short in short_articles %}
+            <a href="{{ short.get_absolute_url }}" class="bg-zinc-900/90 border border-zinc-800 hover:border-red-500/50 rounded-xl p-4 flex gap-4 transition group shadow-md">
+                {% if short.featured_image %}
+                <img src="{{ short.featured_image.url }}" alt="{{ short.title }}" class="w-24 h-24 object-cover rounded-lg flex-shrink-0 bg-zinc-950 border border-zinc-800 group-hover:scale-105 transition duration-300">
+                {% endif %}
+                <div class="flex flex-col justify-between flex-1 min-w-0">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 text-[10px] text-zinc-500 mb-1">
+                            <span class="text-red-500 font-bold">{{ short.category.title|default:"خبر کوتاه" }}</span>
+                            <span>{{ short.created_at|jalali_date:"j F" }}</span>
+                        </div>
+                        <h3 class="text-xs md:text-sm font-bold text-white group-hover:text-red-400 transition line-clamp-2 leading-snug">
+                            {{ short.title }}
+                        </h3>
+                        <p class="text-[11px] text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
+                            {{ short.lead }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-10 bg-zinc-900/40 rounded-2xl border border-zinc-800 text-zinc-500 text-sm">
+            هنوز خبر کوتاهی ثبت نشده است.
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ۵. آخرین مسابقه و نتایج (۳ نفر اول سکو + جدول از نفر ۴ به بعد)        -->
+    <!-- ===================================================================== -->
+    {% if last_gp and last_gp_results %}
+    <section class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                    <span class="text-xs uppercase font-bold text-red-500 tracking-wider">LATEST RACE RESULTS</span>
+                </div>
+                <h2 class="text-xl md:text-2xl font-black text-white">
+                    آخرین مسابقه و نتایج: {{ last_gp.name }} ({{ last_session.get_session_type_display }})
+                </h2>
+                <p class="text-xs text-zinc-400 mt-1">
+                    📍 پیست {{ last_gp.circuit.name }} • راند {{ last_gp.round_number }} فصل {{ last_gp.season.year }}
+                </p>
+            </div>
+            <a href="{% url 'grandprix_calendar:grandprix_detail' last_gp.round_number %}?season={{ last_gp.season.year }}"
+               class="text-xs font-bold text-red-500 hover:text-red-400 transition flex items-center gap-1">
+                <span>مشاهده نتایج کامل تمام جلسات</span>
+                <span>←</span>
+            </a>
+        </div>
+
+        <!-- کارت‌های ۳ نفر اول سکو (Podium) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {% for res in last_gp_results|slice:":3" %}
+            <a href="{% url 'racing:driver_detail' res.driver.code %}"
+               class="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-5 flex items-center justify-between transition group relative overflow-hidden shadow-lg">
+                <div class="absolute right-0 top-0 bottom-0 w-1.5" style="background-color: {{ res.team.color_code|default:'#e10600' }};"></div>
+                <div class="flex items-center gap-3.5 pr-2">
+                    <span class="text-2xl font-black font-mono {% if res.position == 1 %}text-amber-400{% elif res.position == 2 %}text-zinc-300{% else %}text-amber-600{% endif %}">
+                        P{{ res.position }}
+                    </span>
+                    {% if res.driver.portrait %}
+                    <img src="{{ res.driver.portrait.url }}" alt="{{ res.driver.full_name }}" class="w-12 h-12 rounded-full object-cover bg-zinc-950 border border-zinc-700">
+                    {% endif %}
+                    <div>
+                        <h3 class="text-sm font-black text-white group-hover:text-red-400 transition">{{ res.driver.full_name }}</h3>
+                        <span class="text-xs text-zinc-400 block">{{ res.team.name }}</span>
+                    </div>
+                </div>
+                <div class="text-left font-mono">
+                    <span class="text-xs font-bold text-zinc-200 block" dir="ltr">{{ res.time_or_gap|default:res.q3_time|default:"-" }}</span>
+                    {% if res.points %}
+                    <span class="text-[11px] text-emerald-400 font-bold">+{{ res.points|floatformat }} امتیاز</span>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- جدول رده‌بندی از نفر چهارم (P4) به بعد -->
+        {% if last_gp_results|length > 3 %}
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
             <div class="overflow-x-auto">
-                <table class="w-full text-right text-sm">
+                <table class="w-full text-right text-xs md:text-sm">
                     <thead class="bg-zinc-950/80 text-zinc-400 text-xs border-b border-zinc-800">
                         <tr>
                             <th class="py-3 px-4 text-center w-14">رتبه</th>
                             <th class="py-3 px-4">راننده</th>
                             <th class="py-3 px-4">تیم</th>
+                            <th class="py-3 px-4 text-center">دورها</th>
+                            <th class="py-3 px-4 text-center">زمان / فاصله</th>
                             <th class="py-3 px-4 text-left">امتیاز</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-800/80 font-medium">
-                        {% for item in top_drivers %}
+                        {% for res in last_gp_results|slice:"3:" %}
                         <tr class="hover:bg-zinc-800/40 transition">
-                            <td class="py-3.5 px-4 text-center font-bold font-mono {% if item.position == 1 %}text-amber-400 text-base{% elif item.position == 2 %}text-zinc-300 text-base{% elif item.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
-                                {{ item.position }}
+                            <td class="py-3 px-4 text-center font-bold font-mono text-zinc-400">
+                                {{ res.position }}
                             </td>
-                            <td class="py-3.5 px-4">
-                                <a href="{% url 'racing:driver_detail' item.driver.code %}" class="flex items-center gap-2.5 group">
-                                    <span class="w-1.5 h-5 rounded-full" style="background-color: {{ item.driver.team.color_code|default:'#52525b' }};"></span>
-                                    {% if item.driver.portrait %}
-                                    <img src="{{ item.driver.portrait.url }}" alt="{{ item.driver.full_name }}" class="w-7 h-7 rounded-full object-cover bg-zinc-950 border border-zinc-700">
+                            <td class="py-3 px-4">
+                                <a href="{% url 'racing:driver_detail' res.driver.code %}" class="flex items-center gap-2.5 group">
+                                    <span class="w-1.5 h-5 rounded-full" style="background-color: {{ res.team.color_code|default:'#52525b' }};"></span>
+                                    <span class="text-white font-bold group-hover:text-red-400 transition">{{ res.driver.full_name }}</span>
+                                    {% if res.fastest_lap %}
+                                    <span class="text-[10px] bg-purple-600/20 text-purple-400 border border-purple-500/30 px-1.5 py-0.5 rounded font-bold">سریع‌ترین دور</span>
                                     {% endif %}
-                                    <span class="text-white font-bold group-hover:text-red-400 transition">{{ item.driver.full_name }}</span>
                                 </a>
                             </td>
-                            <td class="py-3.5 px-4 text-xs text-zinc-400">
-                                {{ item.driver.team.name|default:"آزاد" }}
-                            </td>
-                            <td class="py-3.5 px-4 text-left font-mono font-black text-white">
-                                {{ item.points|floatformat }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="py-8 text-center text-zinc-500 text-xs">اطلاعاتی ثبت نشده است.</td>
+                            <td class="py-3 px-4 text-xs text-zinc-400">{{ res.team.name }}</td>
+                            <td class="py-3 px-4 text-center font-mono text-zinc-400">{{ res.laps }}</td>
+                            <td class="py-3 px-4 text-center font-mono text-zinc-300" dir="ltr">{{ res.time_or_gap|default:res.q3_time|default:"-" }}</td>
+                            <td class="py-3 px-4 text-left font-mono font-black text-white">{{ res.points|floatformat }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- ===================================================================== -->
+    <!-- ۶. جدول قهرمانی (رانندگان | سازندگان)                                 -->
+    <!-- ===================================================================== -->
+    {% if top_drivers or top_teams %}
+    <section class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                    <span class="text-xs uppercase font-bold text-red-500 tracking-wider">CHAMPIONSHIP STANDINGS</span>
+                </div>
+                <h2 class="text-xl md:text-2xl font-black text-white">جدول قهرمانی (فصل {{ season.year }})</h2>
+            </div>
+            <a href="{% url 'racing:standings' %}" class="text-xs font-bold text-red-500 hover:text-red-400 transition flex items-center gap-1">
+                <span>مشاهده جدول کامل قهرمانی</span>
+                <span>←</span>
+            </a>
         </div>
 
-        <!-- جدول عمودی ۵ تیم برتر -->
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
-            <div class="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
-                <h4 class="text-sm font-bold text-white flex items-center gap-2">
-                    <span class="w-1.5 h-4 bg-red-600 rounded-sm"></span>
-                    ۵ تیم برتر (سازندگان)
-                </h4>
-                <a href="{% url 'racing:standings' %}" class="text-[11px] text-zinc-400 hover:text-white transition">جدول تیم‌ها ←</a>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- ستون راست: جدول رانندگان -->
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <span class="w-1.5 h-4 bg-red-600 rounded-sm"></span>
+                        رده‌بندی رانندگان
+                    </h3>
+                    <a href="{% url 'racing:standings' %}" class="text-[11px] text-zinc-400 hover:text-white transition">جدول کامل ←</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-sm">
+                        <thead class="bg-zinc-950/80 text-zinc-400 text-xs border-b border-zinc-800">
+                            <tr>
+                                <th class="py-3 px-4 text-center w-14">رتبه</th>
+                                <th class="py-3 px-4">راننده</th>
+                                <th class="py-3 px-4">تیم</th>
+                                <th class="py-3 px-4 text-left">امتیاز</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-800/80 font-medium">
+                            {% for item in top_drivers|slice:":5" %}
+                            <tr class="hover:bg-zinc-800/40 transition">
+                                <td class="py-3.5 px-4 text-center font-bold font-mono {% if item.position == 1 %}text-amber-400 text-base{% elif item.position == 2 %}text-zinc-300 text-base{% elif item.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
+                                    {{ item.position }}
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <a href="{% url 'racing:driver_detail' item.driver.code %}" class="flex items-center gap-2.5 group">
+                                        <span class="w-1.5 h-5 rounded-full" style="background-color: {{ item.driver.team.color_code|default:'#52525b' }};"></span>
+                                        {% if item.driver.portrait %}
+                                        <img src="{{ item.driver.portrait.url }}" alt="{{ item.driver.full_name }}" class="w-7 h-7 rounded-full object-cover bg-zinc-950 border border-zinc-700">
+                                        {% endif %}
+                                        <span class="text-white font-bold group-hover:text-red-400 transition">{{ item.driver.full_name }}</span>
+                                    </a>
+                                </td>
+                                <td class="py-3.5 px-4 text-xs text-zinc-400">
+                                    {{ item.driver.team.name|default:"آزاد" }}
+                                </td>
+                                <td class="py-3.5 px-4 text-left font-mono font-black text-white">
+                                    {{ item.points|floatformat }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="py-8 text-center text-zinc-500 text-xs">اطلاعاتی ثبت نشده است.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-right text-sm">
-                    <thead class="bg-zinc-950/80 text-zinc-400 text-xs border-b border-zinc-800">
-                        <tr>
-                            <th class="py-3 px-4 text-center w-14">رتبه</th>
-                            <th class="py-3 px-4">تیم</th>
-                            <th class="py-3 px-4 text-left">امتیاز</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-800/80 font-medium">
-                        {% for item in top_teams %}
-                        <tr class="hover:bg-zinc-800/40 transition">
-                            <td class="py-3.5 px-4 text-center font-bold font-mono {% if item.position == 1 %}text-amber-400 text-base{% elif item.position == 2 %}text-zinc-300 text-base{% elif item.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
-                                {{ item.position }}
-                            </td>
-                            <td class="py-3.5 px-4">
-                                <a href="{% url 'racing:team_detail' item.team.pk %}" class="flex items-center gap-2.5 group">
-                                    <span class="w-1.5 h-5 rounded-full" style="background-color: {{ item.team.color_code|default:'#52525b' }};"></span>
-                                    {% if item.team.logo %}
-                                    <img src="{{ item.team.logo.url }}" alt="{{ item.team.name }}" class="h-5 max-w-[36px] object-contain">
-                                    {% endif %}
-                                    <span class="text-white font-bold group-hover:text-red-400 transition">{{ item.team.name }}</span>
-                                </a>
-                            </td>
-                            <td class="py-3.5 px-4 text-left font-mono font-black text-white">
-                                {{ item.points|floatformat }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="py-8 text-center text-zinc-500 text-xs">اطلاعاتی ثبت نشده است.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+
+            <!-- ستون چپ: جدول سازندگان (تیم‌ها) -->
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <span class="w-1.5 h-4 bg-red-600 rounded-sm"></span>
+                        رده‌بندی سازندگان (تیم‌ها)
+                    </h3>
+                    <a href="{% url 'racing:standings' %}" class="text-[11px] text-zinc-400 hover:text-white transition">جدول کامل ←</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-sm">
+                        <thead class="bg-zinc-950/80 text-zinc-400 text-xs border-b border-zinc-800">
+                            <tr>
+                                <th class="py-3 px-4 text-center w-14">رتبه</th>
+                                <th class="py-3 px-4">تیم</th>
+                                <th class="py-3 px-4">پیشرانه</th>
+                                <th class="py-3 px-4 text-left">امتیاز</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-800/80 font-medium">
+                            {% for item in top_teams|slice:":5" %}
+                            <tr class="hover:bg-zinc-800/40 transition">
+                                <td class="py-3.5 px-4 text-center font-bold font-mono {% if item.position == 1 %}text-amber-400 text-base{% elif item.position == 2 %}text-zinc-300 text-base{% elif item.position == 3 %}text-amber-600 text-base{% else %}text-zinc-400{% endif %}">
+                                    {{ item.position }}
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <a href="{% url 'racing:team_detail' item.team.pk %}" class="flex items-center gap-2.5 group">
+                                        <span class="w-1.5 h-5 rounded-full" style="background-color: {{ item.team.color_code|default:'#52525b' }};"></span>
+                                        {% if item.team.logo %}
+                                        <img src="{{ item.team.logo.url }}" alt="{{ item.team.name }}" class="h-5 max-w-[36px] object-contain">
+                                        {% endif %}
+                                        <span class="text-white font-bold group-hover:text-red-400 transition">{{ item.team.name }}</span>
+                                    </a>
+                                </td>
+                                <td class="py-3.5 px-4 text-xs text-zinc-400">
+                                    {{ item.team.power_unit }}
+                                </td>
+                                <td class="py-3.5 px-4 text-left font-mono font-black text-white">
+                                    {{ item.points|floatformat }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="py-8 text-center text-zinc-500 text-xs">اطلاعاتی ثبت نشده است.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
-</section>
-{% endif %}
+    </section>
+    {% endif %}
+
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- اسکریپت شمارش معکوس دقیق تایمر مسابقه -->
 <script>
     const box = document.getElementById('countdown-box');
     if (box) {
@@ -270,7 +581,7 @@
             const distance = targetDate - now;
 
             if (distance < 0) {
-                box.innerHTML = "<span class='text-red-500 font-bold text-sm'>جلسه در حال برگزاری یا پایان یافته است</span>";
+                box.innerHTML = "<span class='col-span-4 text-red-500 font-bold text-xs py-2'>جلسه در حال برگزاری یا پایان یافته است</span>";
                 return;
             }
 
