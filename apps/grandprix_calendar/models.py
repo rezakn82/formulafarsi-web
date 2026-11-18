@@ -41,6 +41,7 @@ class GrandPrix(models.Model):
     laps_count = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="تعداد دور گرندپری")
     first_grand_prix_year = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="اولین حضور در فرمول یک (سال)")
     race_distance_km = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True, verbose_name="مسافت مسابقه (کیلومتر)")
+    views_count = models.PositiveIntegerField(default=0, db_index=True, verbose_name="تعداد بازدید")
 
     class Meta:
         verbose_name = "گرندپری"

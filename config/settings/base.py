@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "apps.news.apps.NewsConfig",
     "apps.racing.apps.RacingConfig",
     "apps.grandprix_calendar.apps.GrandprixCalendarConfig",
+    "apps.analytics.apps.AnalyticsConfig",
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.analytics.middleware.SiteAnalyticsMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -265,8 +268,8 @@ ATTRIBUTES = {
 # ==============================================================================
 UNFOLD = {
     "SITE_TITLE": "مدیریت فرمولافارسی",
-    "SITE_HEADER": "پیت‌وال فرمولافارسی",
-    "SITE_SUBHEADER": "پنل تحریریه و مدیریت نتایج F1",
+    "SITE_HEADER": "پنل ادمین فرمولافارسی",
+    "SITE_SUBHEADER": "تحریریه و مدیریت فرمولافارسی",
     "SITE_URL": "/",
     "SITE_SYMBOL": "sports_motorsports",
     "SHOW_HISTORY": True,
@@ -290,6 +293,7 @@ UNFOLD = {
             "950": "69 10 10",
         },
     },
+    "DASHBOARD_CALLBACK": "apps.analytics.dashboard.dashboard_callback",
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
@@ -359,6 +363,27 @@ UNFOLD = {
                         "title": "رده‌بندی تیم‌ها",
                         "icon": "emoji_events",
                         "link": reverse_lazy("admin:racing_teamstanding_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "آمار و تحلیل سایت",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "داشبورد کلی",
+                        "icon": "monitoring",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                    {
+                        "title": "بازدید روزانه سایت",
+                        "icon": "insights",
+                        "link": reverse_lazy("admin:analytics_dailysitestat_changelist"),
+                    },
+                    {
+                        "title": "عبارات جستجوشده",
+                        "icon": "manage_search",
+                        "link": reverse_lazy("admin:analytics_searchquerystat_changelist"),
                     },
                 ],
             },

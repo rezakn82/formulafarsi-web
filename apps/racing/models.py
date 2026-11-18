@@ -37,6 +37,7 @@ class Team(models.Model):
     pole_positions = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد پول پوزیشن")
     podiums = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد پودیوم")
     world_championships = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد قهرمانی جهان")
+    views_count = models.PositiveIntegerField(default=0, db_index=True, verbose_name="تعداد بازدید پروفایل")
 
     class Meta:
         verbose_name = "تیم"
@@ -74,6 +75,7 @@ class Driver(models.Model):
     podiums = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد پودیوم")
     world_championships = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد قهرمانی جهان")
     dnfs = models.PositiveSmallIntegerField(default=0, verbose_name="تعداد DNF")
+    views_count = models.PositiveIntegerField(default=0, db_index=True, verbose_name="تعداد بازدید پروفایل")
 
     class Meta:
         verbose_name = "راننده"

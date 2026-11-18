@@ -1,0 +1,124 @@
+{% extends 'unfold/layouts/base_simple.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="space-y-8" dir="rtl">
+
+    <!-- کارت‌های KPI آمار کلی -->
+    {% if kpi_cards %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for card in kpi_cards %}
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-5 shadow-xs">
+            <p class="text-xs font-medium text-base-500 dark:text-base-400">{{ card.title }}</p>
+            <p class="text-2xl font-black text-primary-600 dark:text-primary-500 mt-2">{{ card.metric }}</p>
+            <p class="text-[11px] text-base-400 dark:text-base-500 mt-2 border-t border-base-100 dark:border-base-800 pt-2">
+                {{ card.footer }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- جدول پربازدیدترین اخبار -->
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-5">
+            <h3 class="text-sm font-bold mb-4 text-base-900 dark:text-white">🔥 پربازدیدترین اخبار سایت</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                    <thead class="border-b border-base-200 dark:border-base-800 text-base-400">
+                        <tr>
+                            <th class="py-2">عنوان خبر</th>
+                            <th class="py-2">دسته‌بندی</th>
+                            <th class="py-2 text-left">بازدید</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-base-100 dark:divide-base-800">
+                        {% for art in top_articles %}
+                        <tr>
+                            <td class="py-2.5 font-medium">
+                                <a href="{% url 'admin:news_article_change' art.pk %}" class="hover:text-primary-500">
+                                    {{ art.title|truncatechars:55 }}
+                                </a>
+                            </td>
+                            <td class="py-2.5 text-base-400">{{ art.category.title|default:"-" }}</td>
+                            <td class="py-2.5 text-left font-bold text-primary-500">{{ art.views_count }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="py-4 text-center text-base-400">هنوز بازدیدی ثبت نشده است.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- روند بازدید ۱۰ روز اخیر -->
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-5">
+            <h3 class="text-sm font-bold mb-4 text-base-900 dark:text-white">📈 آمار ترافیک روزانه (۱۰ روز اخیر)</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                    <thead class="border-b border-base-200 dark:border-base-800 text-base-400">
+                        <tr>
+                            <th class="py-2">تاریخ</th>
+                            <th class="py-2 text-center">کاربران یکتا</th>
+                            <th class="py-2 text-left">کل بازدید صفحات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-base-100 dark:divide-base-800">
+                        {% for stat in recent_daily_stats %}
+                        <tr>
+                            <td class="py-2.5 font-medium">{{ stat.date|jalali_date:"l j F Y" }}</td>
+                            <td class="py-2.5 text-center">{{ stat.unique_visitors }}</td>
+                            <td class="py-2.5 text-left font-bold text-primary-500">{{ stat.total_views }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="py-4 text-center text-base-400">هنوز آمار روزانه‌ای ثبت نشده است.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ردیف دوم: محبوب‌ترین رانندگان، تیم‌ها و عبارات جستجوشده -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-5">
+            <h3 class="text-sm font-bold mb-3 text-base-900 dark:text-white">🏎️ محبوب‌ترین رانندگان</h3>
+            <ul class="divide-y divide-base-100 dark:divide-base-800 text-xs">
+                {% for d in top_drivers %}
+                <li class="py-2 flex justify-between">
+                    <span>{{ d.full_name }} ({{ d.team.name|default:"-" }})</span>
+                    <strong class="text-primary-500">{{ d.views_count }} بازدید</strong>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-5">
+            <h3 class="text-sm font-bold mb-3 text-base-900 dark:text-white">🏁 محبوب‌ترین تیم‌ها</h3>
+            <ul class="divide-y divide-base-100 dark:divide-base-800 text-xs">
+                {% for t in top_teams %}
+                <li class="py-2 flex justify-between">
+                    <span>{{ t.name }}</span>
+                    <strong class="text-primary-500">{{ t.views_count }} بازدید</strong>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-5">
+            <h3 class="text-sm font-bold mb-3 text-base-900 dark:text-white">🔍 پرتکرارترین جستجوهای کاربران</h3>
+            <ul class="divide-y divide-base-100 dark:divide-base-800 text-xs">
+                {% for s in top_searches %}
+                <li class="py-2 flex justify-between">
+                    <span>«{{ s.query }}» <small class="text-base-400">({{ s.last_results_count }} نتیجه)</small></span>
+                    <strong class="text-primary-500">{{ s.search_count }} بار</strong>
+                </li>
+                {% empty %}
+                <li class="py-2 text-base-400">هنوز جستجویی ثبت نشده است.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

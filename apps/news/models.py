@@ -42,6 +42,7 @@ class Article(models.Model):
     body = models.TextField(blank=True, verbose_name="متن کامل خبر (اختیاری برای خبر کوتاه)")
     featured_image = models.ImageField(upload_to='news/%Y/%m/', verbose_name="تصویر شاخص")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft', verbose_name="وضعیت انتشار")
+    views_count = models.PositiveIntegerField(default=0, db_index=True, verbose_name="تعداد بازدید")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخرین به‌روزرسانی")
 

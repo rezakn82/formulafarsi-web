@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
+import hashlib
 from io import BytesIO
 import random
 
@@ -12,13 +13,14 @@ from django.utils.text import slugify
 from faker import Faker
 from PIL import Image, ImageDraw
 
+from apps.analytics.models import DailySiteStat, DailyVisitorHash, SearchQueryStat
 from apps.grandprix_calendar.models import GrandPrix, Season, Session, SessionResult
 from apps.news.models import Article, Category
 from apps.racing.models import Circuit, Driver, DriverStanding, Team, TeamStanding
 
 
 def create_placeholder_image(filename: str, width: int, height: int, color: str) -> ContentFile:
-    """ساخت تصویر تستی در حافظه رم با Pillow برای جلوگیری از خطای نبود عکس در قالب‌ها.[cite: 6]"""
+    """ساخت تصویر تستی در حافظه رم با Pillow برای جلوگیری از خطای نبود عکس در قالب‌ها."""
     img = Image.new("RGB", (width, height), color=color)
     draw = ImageDraw.Draw(img)
     draw.rectangle([10, 10, width - 10, height - 10], outline="#ffffff", width=3)
@@ -28,7 +30,7 @@ def create_placeholder_image(filename: str, width: int, height: int, color: str)
 
 
 class Command(BaseCommand):
-    help = "تولید دیتای تستی کامل برای وبسایت فرمولافارسی (شامل آمار تیم/راننده/گرندپری، راننده رزرو، آرشیو نتایج، اخبار کوتاه و اخبار فوری)"
+    help = "تولید دیتای تستی کامل برای وبسایت فرمولافارسی (شامل آمار بازدید سایت، اخبار، رانندگان، تیم‌ها و جستجوها)"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -43,6 +45,9 @@ class Command(BaseCommand):
 
         if options["flush"]:
             self.stdout.write(self.style.WARNING("در حال پاکسازی اطلاعات قبلی..."))
+            DailyVisitorHash.objects.all().delete()
+            DailySiteStat.objects.all().delete()
+            SearchQueryStat.objects.all().delete()
             Article.objects.all().delete()
             Category.objects.all().delete()
             SessionResult.objects.all().delete()
@@ -53,7 +58,7 @@ class Command(BaseCommand):
             Team.objects.all().delete()
             Circuit.objects.all().delete()
 
-        # ۱. ساخت کاربر نویسنده / ادمین[cite: 6]
+        # ۱. ساخت کاربر نویسنده / ادمین
         admin_user, created = User.objects.get_or_create(
             username="admin",
             defaults={
@@ -68,7 +73,7 @@ class Command(BaseCommand):
             admin_user.set_password("admin1234")
             admin_user.save()
 
-        # ۲. ساخت فصل‌ها و تست خودکار قابلیت Single Active Season Enforcement[cite: 6]
+        # ۲. ساخت فصل‌ها و تست خودکار قابلیت Single Active Season Enforcement
         self.stdout.write("در حال تست قابلیت تک‌فصلی (Single Active Season)...")
         season_2024, _ = Season.objects.update_or_create(year=2024, defaults={"is_current": False})
         season_2025, _ = Season.objects.update_or_create(year=2025, defaults={"is_current": True})
@@ -85,16 +90,16 @@ class Command(BaseCommand):
                 self.style.ERROR("✘ خطا در تست فصل جاری: بیش از یک فصل فعال وجود دارد!")
             )
 
-        # ۳. ساخت ۵ تیم واقعی فرمول یک به همراه آمار کامل تاریخچه[cite: 6]
+        # ۳. ساخت ۵ تیم واقعی فرمول یک به همراه آمار کامل تاریخچه و بازدید پروفایل
         teams_data = [
-            ("فراری", "Scuderia Ferrari", "مارانلو، ایتالیا", "فردریک واسور", "فراری", "#E80020", 1100, "10240.5", "1 (x248)", "1 (x253)", 253, 825, 16),
-            ("ردبول", "Oracle Red Bull Racing", "میلتون کینز، انگلستان", "کریستین هورنر", "هوندا RBPT", "#3671C6", 395, "7850.0", "1 (x122)", "1 (x103)", 103, 282, 6),
-            ("مک‌لارن", "McLaren Formula 1 Team", "وکینگ، انگلستان", "آندره‌آ استلا", "مرسدس", "#FF8000", 972, "6950.5", "1 (x189)", "1 (x164)", 164, 524, 9),
-            ("مرسدس", "Mercedes-AMG PETRONAS F1", "براکلی، انگلستان", "توتو وولف", "مرسدس", "#27F4D2", 318, "7620.5", "1 (x129)", "1 (x139)", 139, 298, 8),
-            ("آستون مارتین", "Aston Martin Aramco F1", "سیلوراستون، انگلستان", "مایک کرک", "مرسدس", "#229971", 98, "512.0", "2 (x3)", "2 (x1)", 0, 9, 0),
+            ("فراری", "Scuderia Ferrari", "مارانلو، ایتالیا", "فردریک واسور", "فراری", "#E80020", 1100, "10240.5", "1 (x248)", "1 (x253)", 253, 825, 16, 4820),
+            ("ردبول", "Oracle Red Bull Racing", "میلتون کینز، انگلستان", "کریستین هورنر", "هوندا RBPT", "#3671C6", 395, "7850.0", "1 (x122)", "1 (x103)", 103, 282, 6, 4150),
+            ("مک‌لارن", "McLaren Formula 1 Team", "وکینگ، انگلستان", "آندره‌آ استلا", "مرسدس", "#FF8000", 972, "6950.5", "1 (x189)", "1 (x164)", 164, 524, 9, 3690),
+            ("مرسدس", "Mercedes-AMG PETRONAS F1", "براکلی، انگلستان", "توتو وولف", "مرسدس", "#27F4D2", 318, "7620.5", "1 (x129)", "1 (x139)", 139, 298, 8, 3120),
+            ("آستون مارتین", "Aston Martin Aramco F1", "سیلوراستون، انگلستان", "مایک کرک", "مرسدس", "#229971", 98, "512.0", "2 (x3)", "2 (x1)", 0, 9, 0, 1840),
         ]
         teams = []
-        for idx, (name, full_name, base, chief, pu, color, gps, pts, best_race, best_grid, poles, podiums, wcc) in enumerate(teams_data, start=1):
+        for idx, (name, full_name, base, chief, pu, color, gps, pts, best_race, best_grid, poles, podiums, wcc, views) in enumerate(teams_data, start=1):
             team, _ = Team.objects.update_or_create(
                 name=name,
                 defaults={
@@ -113,27 +118,28 @@ class Command(BaseCommand):
                     "pole_positions": poles,
                     "podiums": podiums,
                     "world_championships": wcc,
+                    "views_count": views,
                 },
             )
             teams.append(team)
 
-        # ۴. ساخت ۱۰ راننده اصلی + ۱ راننده رزرو تستی (الیور برمن) با آمار کامل دوران حرفه‌ای[cite: 6]
+        # ۴. ساخت ۱۰ راننده اصلی + ۱ راننده رزرو تستی (الیور برمن) با آمار کامل و تعداد بازدید
         drivers_data = [
-            ("شارل", "لکلرک", 16, "LEC", "موناکو", teams[0], True, 149, "1430.0", "1 (x8)", "1 (x26)", 26, 43, 0, 21),
-            ("لوئیس", "همیلتون", 44, "HAM", "بریتانیا", teams[0], True, 356, "4862.5", "1 (x105)", "1 (x104)", 104, 202, 7, 32),
-            ("مکس", "ورستپن", 1, "VER", "هلند", teams[1], True, 209, "3023.5", "1 (x63)", "1 (x40)", 40, 112, 4, 32),
-            ("لیام", "لاوسون", 30, "LAW", "نیوزیلند", teams[1], True, 11, "6.0", "9 (x3)", "5 (x1)", 0, 0, 0, 1),
-            ("لندو", "نوریس", 4, "NOR", "بریتانیا", teams[2], True, 128, "1007.0", "1 (x4)", "1 (x9)", 9, 26, 0, 11),
-            ("اسکار", "پیاستری", 81, "PIA", "استرالیا", teams[2], True, 46, "389.0", "1 (x2)", "2 (x5)", 0, 10, 0, 3),
-            ("جورج", "راسل", 63, "RUS", "بریتانیا", teams[3], True, 128, "714.0", "1 (x3)", "1 (x5)", 5, 15, 0, 19),
-            ("آندره‌آ کیمی", "آنتونلی", 12, "ANT", "ایتالیا", teams[3], True, 2, "18.0", "4 (x1)", "5 (x1)", 0, 0, 0, 0),
-            ("فرناندو", "آلونسو", 14, "ALO", "اسپانیا", teams[4], True, 404, "2337.0", "1 (x32)", "1 (x22)", 22, 106, 2, 79),
-            ("لنس", "استرول", 18, "STR", "کانادا", teams[4], True, 167, "292.0", "3 (x3)", "1 (x1)", 1, 3, 0, 31),
-            ("الیور", "برمن", 87, "BEA", "بریتانیا", teams[0], False, 3, "7.0", "7 (x1)", "10 (x1)", 0, 0, 0, 0),
+            ("شارل", "لکلرک", 16, "LEC", "موناکو", teams[0], True, 149, "1430.0", "1 (x8)", "1 (x26)", 26, 43, 0, 21, 5420),
+            ("لوئیس", "همیلتون", 44, "HAM", "بریتانیا", teams[0], True, 356, "4862.5", "1 (x105)", "1 (x104)", 104, 202, 7, 32, 6890),
+            ("مکس", "ورستپن", 1, "VER", "هلند", teams[1], True, 209, "3023.5", "1 (x63)", "1 (x40)", 40, 112, 4, 32, 6310),
+            ("لیام", "لاوسون", 30, "LAW", "نیوزیلند", teams[1], True, 11, "6.0", "9 (x3)", "5 (x1)", 0, 0, 0, 1, 1420),
+            ("لندو", "نوریس", 4, "NOR", "بریتانیا", teams[2], True, 128, "1007.0", "1 (x4)", "1 (x9)", 9, 26, 0, 11, 4510),
+            ("اسکار", "پیاستری", 81, "PIA", "استرالیا", teams[2], True, 46, "389.0", "1 (x2)", "2 (x5)", 0, 10, 0, 3, 2890),
+            ("جورج", "راسل", 63, "RUS", "بریتانیا", teams[3], True, 128, "714.0", "1 (x3)", "1 (x5)", 5, 15, 0, 19, 2640),
+            ("آندره‌آ کیمی", "آنتونلی", 12, "ANT", "ایتالیا", teams[3], True, 2, "18.0", "4 (x1)", "5 (x1)", 0, 0, 0, 0, 3180),
+            ("فرناندو", "آلونسو", 14, "ALO", "اسپانیا", teams[4], True, 404, "2337.0", "1 (x32)", "1 (x22)", 22, 106, 2, 79, 3950),
+            ("لنس", "استرول", 18, "STR", "کانادا", teams[4], True, 167, "292.0", "3 (x3)", "1 (x1)", 1, 3, 0, 31, 980),
+            ("الیور", "برمن", 87, "BEA", "بریتانیا", teams[0], False, 3, "7.0", "7 (x1)", "10 (x1)", 0, 0, 0, 0, 840),
         ]
         drivers = []
         reserve_driver = None
-        for first, last, num, code, country, team, is_main, gps, pts, best_race, best_grid, poles, podiums, wdc, dnfs in drivers_data:
+        for first, last, num, code, country, team, is_main, gps, pts, best_race, best_grid, poles, podiums, wdc, dnfs, views in drivers_data:
             driver, _ = Driver.objects.update_or_create(
                 code=code,
                 defaults={
@@ -154,6 +160,7 @@ class Command(BaseCommand):
                     "podiums": podiums,
                     "world_championships": wdc,
                     "dnfs": dnfs,
+                    "views_count": views,
                 },
             )
             if is_main:
@@ -161,7 +168,7 @@ class Command(BaseCommand):
             else:
                 reserve_driver = driver
 
-        # ۵. ساخت جدول رده‌بندی رانندگان و تیم‌ها برای هر دو فصل ۲۰۲۵ و ۲۰۲۶[cite: 6]
+        # ۵. ساخت جدول رده‌بندی رانندگان و تیم‌ها برای هر دو فصل ۲۰۲۵ و ۲۰۲۶
         points_scale_2026 = [44, 36, 30, 24, 20, 16, 12, 8, 4, 1]
         points_scale_2025 = [410, 385, 340, 290, 250, 190, 140, 95, 60, 22]
 
@@ -255,17 +262,17 @@ class Command(BaseCommand):
                     },
                 )
 
-        # ۶. ساخت پیست‌ها، گرندپری‌ها و سشن‌ها برای فصل جاری (۲۰۲۶)[cite: 6]
+        # ۶. ساخت پیست‌ها، گرندپری‌ها و سشن‌ها برای فصل جاری (۲۰۲۶)
         now = timezone.now()
         gp_configs = [
-            (1, "گرندپری بحرین", "پیست بین‌المللی صخیر", "صخیر", "بحرین", "5.412", 15, -14, False, "مکس ورستپن (ردبول)", 57, 2004, "308.238"),
-            (2, "گرندپری عربستان", "پیست خیابانی جده", "جده", "عربستان", "6.174", 27, -7, True, "شارل لکلرک (فراری)", 50, 2021, "308.450"),
-            (3, "گرندپری استرالیا", "آلبرت پارک", "ملبورن", "استرالیا", "5.278", 14, 2, False, "لندو نوریس (مک‌لارن)", 58, 1996, "306.124"),
-            (4, "گرندپری ژاپن", "پیست سوزوکا", "سوزوکا", "ژاپن", "5.807", 18, 14, True, "مکس ورستپن (ردبول)", 53, 1987, "307.471"),
+            (1, "گرندپری بحرین", "پیست بین‌المللی صخیر", "صخیر", "بحرین", "5.412", 15, -14, False, "مکس ورستپن (ردبول)", 57, 2004, "308.238", 3840),
+            (2, "گرندپری عربستان", "پیست خیابانی جده", "جده", "عربستان", "6.174", 27, -7, True, "شارل لکلرک (فراری)", 50, 2021, "308.450", 3290),
+            (3, "گرندپری استرالیا", "آلبرت پارک", "ملبورن", "استرالیا", "5.278", 14, 2, False, "لندو نوریس (مک‌لارن)", 58, 1996, "306.124", 4610),
+            (4, "گرندپری ژاپن", "پیست سوزوکا", "سوزوکا", "ژاپن", "5.807", 18, 14, True, "مکس ورستپن (ردبول)", 53, 1987, "307.471", 1920),
         ]
 
         grands_prix = []
-        for round_num, gp_name, circuit_name, loc, country, length, corners, offset_days, is_sprint, prev_winner, laps_cnt, first_yr, dist_km in gp_configs:
+        for round_num, gp_name, circuit_name, loc, country, length, corners, offset_days, is_sprint, prev_winner, laps_cnt, first_yr, dist_km, gp_views in gp_configs:
             circuit, _ = Circuit.objects.update_or_create(
                 name=circuit_name,
                 defaults={
@@ -291,6 +298,7 @@ class Command(BaseCommand):
                     "laps_count": laps_cnt,
                     "first_grand_prix_year": first_yr,
                     "race_distance_km": Decimal(dist_km),
+                    "views_count": gp_views,
                 },
             )
             grands_prix.append(gp)
@@ -318,7 +326,7 @@ class Command(BaseCommand):
                         shuffled_drivers[0], shuffled_drivers[2] = shuffled_drivers[2], shuffled_drivers[0]
                     populate_session_results(session_obj, shuffled_drivers)
 
-        # ۷. ساخت یک گرندپری آرشیوی در فصل ۲۰۲۵[cite: 6]
+        # ۷. ساخت یک گرندپری آرشیوی در فصل ۲۰۲۵
         old_gp_date = (now - timedelta(days=300)).date()
         gp_2025, _ = GrandPrix.objects.update_or_create(
             season=season_2025,
@@ -332,6 +340,7 @@ class Command(BaseCommand):
                 "laps_count": 57,
                 "first_grand_prix_year": 2004,
                 "race_distance_km": Decimal("308.238"),
+                "views_count": 1450,
             },
         )
         for s_type, hours_diff in [("qualifying", -20), ("race", 0)]:
@@ -342,7 +351,7 @@ class Command(BaseCommand):
             )
             populate_session_results(old_session, list(reversed(drivers)))
 
-        # ۸. ساخت دسته‌بندی‌ها و ۱۲ خبر اصلی
+        # ۸. ساخت دسته‌بندی‌ها و ۱۲ خبر اصلی با آمار بازدید متنوع
         cat_titles = ["گزارش مسابقه", "تحلیل فنی", "نقل و انتقالات", "مصاحبه اختصاصی", "خبر کوتاه"]
         categories = []
         for title in cat_titles:
@@ -351,6 +360,8 @@ class Command(BaseCommand):
                 defaults={"title": title},
             )
             categories.append(cat)
+
+        main_article_views = [8420, 5190, 3840, 2950, 4120, 1890, 2340, 3670, 1540, 2780, 3110, 6250]
 
         for i in range(1, 13):
             if i == 1:
@@ -376,7 +387,7 @@ class Command(BaseCommand):
                     "author": admin_user,
                     "category": categories[i % 4],
                     "is_short": False,
-                    "is_breaking": i in (1, 12),  # انتخاب ۲ خبر اصلی برای نوار اخبار فوری
+                    "is_breaking": i in (1, 12),
                     "lead": fake.paragraph(nb_sentences=3),
                     "body": (
                         f"<h2>{fake.sentence(nb_words=5)}</h2>"
@@ -389,13 +400,14 @@ class Command(BaseCommand):
                         f"news_{i}.jpg", 1200, 675, random.choice(["#991b1b", "#1e3a8a", "#065f46", "#3f3f46"])
                     ),
                     "status": "published",
+                    "views_count": main_article_views[i - 1],
                     "related_grand_prix": target_gp,
                 },
             )
             art.related_drivers.set(tagged_drivers)
             art.related_teams.set(tagged_teams)
 
-        # ۹. ساخت ۶ خبر کوتاه (is_short=True) که ۳ مورد آن در نوار اخبار فوری (is_breaking=True) هم هستند
+        # ۹. ساخت ۶ خبر کوتاه (is_short=True) با آمار بازدید
         short_news_samples = [
             (
                 "بسته آپدیت آیرودینامیکی جدید فراری برای گرندپری استرالیا تایید شد",
@@ -405,6 +417,7 @@ class Command(BaseCommand):
                 [drivers[0], drivers[1]],
                 [teams[0]],
                 True,
+                3420,
             ),
             (
                 "ورستپن: تنظیمات شبیه‌ساز ردبول برای پیست آلبرت پارک امیدوارکننده است",
@@ -414,6 +427,7 @@ class Command(BaseCommand):
                 [drivers[2]],
                 [teams[1]],
                 True,
+                2890,
             ),
             (
                 "پیرلی ترکیبات لاستیک نرم‌تر C3، C4 و C5 را برای آخرهفته ملبورن انتخاب کرد",
@@ -423,6 +437,7 @@ class Command(BaseCommand):
                 [],
                 [],
                 False,
+                1650,
             ),
             (
                 "آندره‌آ استلا: مک‌لارن هنوز به سقف پتانسیل خودروی ۲۰۲۶ نرسیده است",
@@ -432,6 +447,7 @@ class Command(BaseCommand):
                 [drivers[4], drivers[5]],
                 [teams[2]],
                 True,
+                2140,
             ),
             (
                 "رکوردشکنی فروش بلیت گرندپری استرالیا؛ بیش از ۴۵۰ هزار تماشاگر در آلبرت پارک",
@@ -441,6 +457,7 @@ class Command(BaseCommand):
                 [],
                 [],
                 False,
+                1930,
             ),
             (
                 "توتو وولف عملکرد کیمی آنتونلی را در دو راند نخست فصل ستود",
@@ -450,10 +467,11 @@ class Command(BaseCommand):
                 [drivers[7]],
                 [teams[3]],
                 False,
+                2470,
             ),
         ]
 
-        for idx, (s_title, s_lead, s_body, s_color, s_drivers, s_teams, is_brk) in enumerate(short_news_samples, start=1):
+        for idx, (s_title, s_lead, s_body, s_color, s_drivers, s_teams, is_brk, s_views) in enumerate(short_news_samples, start=1):
             short_art, _ = Article.objects.update_or_create(
                 slug=f"short-f1-news-{idx}",
                 defaults={
@@ -466,14 +484,65 @@ class Command(BaseCommand):
                     "body": s_body,
                     "featured_image": create_placeholder_image(f"short_news_{idx}.jpg", 800, 600, s_color),
                     "status": "published",
+                    "views_count": s_views,
                     "related_grand_prix": grands_prix[2],
                 },
             )
             short_art.related_drivers.set(s_drivers)
             short_art.related_teams.set(s_teams)
 
+        # ۱۰. ساخت آمار ترافیک روزانه سایت (۳۰ روز گذشته) و عبارات جستجوشده
+        self.stdout.write("در حال تولید آمار ترافیک ۳۰ روز گذشته و کلمات جستجوشده...")
+        today = timezone.localdate()
+
+        for days_ago in range(29, -1, -1):
+            stat_date = today - timedelta(days=days_ago)
+            # شبیه‌سازی ترافیک بالاتر در روزهای جمعه، شنبه و یکشنبه (آخر هفته‌های مسابقه)
+            is_race_weekend = stat_date.weekday() in (4, 5, 6)
+            base_unique = random.randint(650, 1200) if is_race_weekend else random.randint(280, 620)
+            total_pageviews = int(base_unique * random.uniform(2.6, 4.2))
+
+            DailySiteStat.objects.update_or_create(
+                date=stat_date,
+                defaults={
+                    "total_views": total_pageviews,
+                    "unique_visitors": base_unique,
+                },
+            )
+
+        # ساخت چند هش بازدیدکننده یکتا برای امروز
+        for i in range(1, 15):
+            sample_hash = hashlib.sha256(f"{today.isoformat()}:192.168.1.{i}:Mozilla/5.0".encode()).hexdigest()
+            DailyVisitorHash.objects.get_or_create(
+                date=today,
+                visitor_hash=sample_hash,
+            )
+
+        # ساخت آمار عبارات جستجوشده توسط کاربران
+        sample_searches = [
+            ("فراری", 142, 6),
+            ("ورستپن", 118, 4),
+            ("همیلتون", 96, 3),
+            ("زمانبندی گرندپری استرالیا", 84, 1),
+            ("مک‌لارن", 73, 4),
+            ("لکلرک", 65, 3),
+            ("قوانین موتور ۲۰۲۶", 51, 2),
+            ("آنتونلی", 44, 2),
+            ("پیست استانبول پارک", 29, 0),  # نمونه جستجوی بدون نتیجه برای بررسی خلا محتوایی
+            ("پخش زنده فرمول یک", 19, 0),
+        ]
+
+        for query_text, count, results_cnt in sample_searches:
+            SearchQueryStat.objects.update_or_create(
+                query=query_text,
+                defaults={
+                    "search_count": count,
+                    "last_results_count": results_cnt,
+                },
+            )
+
         self.stdout.write(
-            self.style.SUCCESS("✔ راننده رزرو، ۶ خبر کوتاه و ۵ خبر فوری (is_breaking=True) ساخته شدند!")
+            self.style.SUCCESS("✔ آمار ۳۰ روز بازدید سایت، بازدید اخبار/رانندگان/تیم‌ها و کلمات جستجوشده ساخته شد!")
         )
         self.stdout.write(self.style.SUCCESS("✅ دیتای تستی فرمولافارسی با موفقیت ساخته شد!"))
         self.stdout.write(self.style.SUCCESS("👤 یوزر ادمین: admin | رمز عبور: admin1234"))

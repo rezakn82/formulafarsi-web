@@ -7,6 +7,7 @@ from apps.grandprix_calendar.models import GrandPrix, Season, Session, SessionRe
 from apps.racing.models import Driver, DriverStanding, Team, TeamStanding
 
 from .models import Article, Category
+from apps.analytics.utils import record_object_view, record_search_query
 
 
 def home_view(request):
@@ -137,6 +138,8 @@ def article_detail_view(request, slug):
         slug=slug,
         status='published',
     )
+    record_object_view(request, Article, article.pk, "articles")
+    article.views_count += 1  # برای نمایش لحظه‌ای در همان بارگذاری صفحه در صورت نیاز
 
     related_articles = Article.objects.filter(
         status='published'
@@ -173,6 +176,7 @@ def articles_list_view(request):
             Q(lead__icontains=search_query) |
             Q(body__icontains=search_query)
         ).distinct()
+        record_search_query(request, search_query, articles_queryset.count())
 
     paginator = Paginator(articles_queryset, 9)
     page_number = request.GET.get('page')
@@ -261,6 +265,7 @@ def global_search_view(request):
             + len(teams)
             + len(articles)
         )
+        record_search_query(request, query, total_results)
 
     context = {
         'search_query': query,

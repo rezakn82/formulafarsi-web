@@ -14,17 +14,19 @@ class CircuitAdmin(ModelAdmin):
 @admin.register(Team)
 class TeamAdmin(ModelAdmin, SummernoteModelAdmin):
     summernote_fields = ('bio',)
-    list_display = ('name', 'team_chief', 'power_unit')
+    list_display = ('name', 'team_chief', 'power_unit', 'views_count')
     search_fields = ('name',)
+    readonly_fields = ('views_count',)
 
 
 @admin.register(Driver)
 class DriverAdmin(ModelAdmin, SummernoteModelAdmin):
     summernote_fields = ('bio',)
-    list_display = ('full_name', 'permanent_number', 'code', 'team', 'is_main_driver', 'country')
+    list_display = ('full_name', 'permanent_number', 'code', 'team', 'is_main_driver', 'views_count')
     list_editable = ('is_main_driver',)
     list_filter = ('is_main_driver', 'team', 'country')
     search_fields = ('first_name', 'last_name', 'code', 'permanent_number')
+    readonly_fields = ('views_count',)
 
 @admin.register(DriverStanding)
 class DriverStandingAdmin(ModelAdmin):

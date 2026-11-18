@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from apps.grandprix_calendar.models import Season
 
 from .models import Driver, DriverStanding, Team, TeamStanding
+from apps.analytics.utils import record_object_view
 
 
 def _get_current_season():
@@ -41,6 +42,8 @@ def driver_detail_view(request, code):
         Driver.objects.select_related('team'),
         code__iexact=code,
     )
+
+    record_object_view(request, Driver, driver.pk, "drivers")
 
     teammates = []
     if driver.team:
@@ -90,6 +93,8 @@ def team_detail_view(request, pk):
         Team.objects.prefetch_related(main_drivers_prefetch),
         pk=pk,
     )
+
+    record_object_view(request, Team, team.pk, "teams")
 
     related_articles = team.articles.filter(status='published').select_related('category')[:6]
 

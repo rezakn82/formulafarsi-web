@@ -2,6 +2,7 @@ from django.db.models import Prefetch
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from .models import GrandPrix, Season, Session, SessionResult
+from apps.analytics.utils import record_object_view
 
 
 def _resolve_season(request):
@@ -68,6 +69,8 @@ def grandprix_detail_view(request, round_number):
         season=current_season,
         round_number=round_number,
     )
+
+    record_object_view(request, GrandPrix, grand_prix.pk, "grands_prix")
 
     sessions = list(grand_prix.sessions.all())
     sessions_with_results = [s for s in sessions if s.results.all()]
