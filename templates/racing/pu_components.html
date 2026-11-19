@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}قطعات پیشرانه (PU){% if season %} فصل {{ season.year }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- سربرگ صفحه و انتخاب فصل -->
+    <div class="border-b border-zinc-800 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                <span class="text-xs uppercase font-bold text-red-500 tracking-wider">POWER UNIT ALLOCATION</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-black text-white">
+                وضعیت قطعات پیشرانه (PU){% if season %} — فصل {{ season.year }}{% endif %}
+            </h1>
+            <p class="text-xs text-zinc-400 mt-2">
+                تعداد قطعات مصرف‌شده توسط هر راننده در طول فصل نسبت به سقف مجاز فدراسیون جهانی اتومبیلرانی (FIA)
+            </p>
+        </div>
+
+        {% if seasons %}
+        <form method="get" class="flex items-center gap-2">
+            <label for="season-select" class="text-xs text-zinc-400">فصل:</label>
+            <select id="season-select" name="season" onchange="this.form.submit()"
+                    class="bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs font-bold rounded-lg px-3 py-2 focus:outline-none focus:border-red-500">
+                {% for s in seasons %}
+                <option value="{{ s.year }}" {% if season and s.year == season.year %}selected{% endif %}>
+                    فصل {{ s.year }}{% if s.is_current %} (جاری){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- راهنمای رنگ‌ها -->
+    <div class="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
+        <div class="flex flex-wrap items-center gap-5">
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-white inline-block"></span>
+                <span class="text-zinc-300"><strong class="text-white">سفید:</strong> در محدوده قطعات مجاز</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-orange-400 inline-block"></span>
+                <span class="text-zinc-300"><strong class="text-orange-400">نارنجی:</strong> در مرز جریمه (آخرین قطعه مجاز)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                <span class="text-zinc-300"><strong class="text-red-500">قرمز:</strong> عبور از سقف مجاز (جریمه رده استارت)</span>
+            </div>
+        </div>
+        <span class="text-[11px] text-zinc-500">
+            اولین قطعه اضافه: ۱۰ رده جریمه | قطعات بعدی: ۵ رده جریمه
+        </span>
+    </div>
+
+    <!-- جدول مصرف قطعات PU رانندگان -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+                <thead>
+                    <tr class="bg-zinc-950/90 border-b border-zinc-800 text-xs text-zinc-400">
+                        <th class="py-4 px-4 font-bold whitespace-nowrap">راننده</th>
+                        <th class="py-4 px-4 font-bold whitespace-nowrap">تیم</th>
+                        <th class="py-4 px-4 font-bold whitespace-nowrap">پیشرانه</th>
+                        {% for comp in component_headers %}
+                        <th class="py-4 px-3 text-center font-bold whitespace-nowrap">
+                            <span class="block text-zinc-200 font-mono text-xs tracking-wide">{{ comp.code }}</span>
+                            <span class="block text-[10px] text-zinc-500 font-normal mt-0.5">مجاز: {{ comp.limit }}</span>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-800/80 text-sm">
+                    {% for row in rows %}
+                    <tr class="hover:bg-zinc-800/40 transition">
+                        <!-- نام راننده -->
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            <a href="{{ row.driver.get_absolute_url }}" class="flex items-center gap-3 group">
+                                <span class="w-1 h-7 rounded-full shrink-0"
+                                      style="background-color: {{ row.team.color_code|default:'#e10600' }};"></span>
+                                <div>
+                                    <span class="font-bold text-white group-hover:text-red-400 transition block">
+                                        {{ row.driver.full_name }}
+                                    </span>
+                                    <span class="text-[11px] font-mono text-zinc-500">
+                                        #{{ row.driver.permanent_number }} • {{ row.driver.code }}
+                                    </span>
+                                </div>
+                            </a>
+                        </td>
+
+                        <!-- نام تیم -->
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            {% if row.team %}
+                            <a href="{{ row.team.get_absolute_url }}" class="inline-flex items-center gap-2 text-zinc-200 hover:text-red-400 transition text-xs font-semibold">
+                                {% if row.team.logo %}
+                                <img src="{{ row.team.logo.url }}" alt="{{ row.team.name }}" class="w-5 h-5 object-contain shrink-0">
+                                {% endif %}
+                                <span>{{ row.team.name }}</span>
+                            </a>
+                            {% else %}
+                            <span class="text-xs text-zinc-500">-</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- نام پیشرانه -->
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            <span class="text-xs text-zinc-300 bg-zinc-950/70 border border-zinc-800 px-2.5 py-1 rounded-lg">
+                                {{ row.power_unit }}
+                            </span>
+                        </td>
+
+                        <!-- سلول‌های ۷ قطعه PU -->
+                        {% for cell in row.cells %}
+                        <td class="py-3.5 px-2 text-center whitespace-nowrap">
+                            <span title="{{ cell.code }}: {{ cell.used }} از {{ cell.limit }}"
+                                  class="inline-flex items-center justify-center min-w-[2.5rem] px-2 py-1 rounded-lg border font-mono text-sm {{ cell.bg_class }} {{ cell.text_class }}">
+                                {{ cell.used }}
+                            </span>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="py-12 text-center text-zinc-500 text-sm">
+                            هنوز اطلاعات قطعات پیشرانه برای این فصل ثبت نشده است.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- بخش معرفی و وظیفه هر قطعه PU در زیر جدول -->
+    <section class="space-y-5 pt-4">
+        <div class="flex items-center gap-2.5">
+            <span class="w-1.5 h-6 bg-red-600 rounded-sm"></span>
+            <div>
+                <h2 class="text-xl font-black text-white">آشنایی با قطعات واحد قدرت (PU) و وظیفه هر کدام</h2>
+                <p class="text-xs text-zinc-400 mt-0.5">نقش فنی ۷ قطعه اصلی پیشرانه‌های فرمول یک در مقررات فصل ۲۰۲۶</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for info in component_infos %}
+            <div class="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-5 transition flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                        <span class="font-mono text-sm font-black bg-red-600/15 text-red-500 border border-red-500/30 px-2.5 py-1 rounded-lg">
+                            {{ info.code }}
+                        </span>
+                        {% if info.limit %}
+                        <span class="text-[11px] text-zinc-400 bg-zinc-950 border border-zinc-800 px-2.5 py-1 rounded-lg">
+                            سقف مجاز: <strong class="text-white font-mono">{{ info.limit }}</strong> عدد
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <h3 class="text-base font-bold text-white">{{ info.persian_name }}</h3>
+                    <p class="text-[11px] font-mono text-zinc-500 mt-0.5 mb-3" dir="ltr">{{ info.english_name }}</p>
+
+                    <p class="text-xs text-zinc-300 leading-relaxed text-justify">
+                        {{ info.description }}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

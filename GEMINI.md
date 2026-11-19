@@ -21,6 +21,7 @@ FormulaFarsi is a Persian-language (RTL) Formula 1 and motorsport editorial, rac
 - **`docs/`**: Project documentation (`docs/README.md`, `docs/architecture.md`, `docs/TODO.md`, and per-app pages in `docs/modules/<app_name>.md`).
 - **`templates/`**: Django HTML templates styled with **Tailwind CSS** and the **Vazirmatn** Persian font (`dir="rtl"`, `lang="fa"`).
 - **`.agent/skills/`**: Shared Antigravity/Gemini skills for the team.
+- **`apps.racing`** (`apps/racing/`): F1 `Circuit`, `Team`, `Driver`, `DriverStanding`, `TeamStanding`, `PowerUnitLimit`, `DriverPowerUnitUsage`, and `PowerUnitComponentInfo` models, views, and admin configurations.
 
 ---
 

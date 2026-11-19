@@ -19,6 +19,7 @@ It provides an editorial publishing workflow with RTL Summernote rich-text suppo
   - **Constructor (Team)** profiles with custom brand color codes, car liveries, power unit details, driver lineups, and team news.
   - **Circuit** directory with track length, corner count, lap records, and circuit layout maps.
   - **Driver & Constructor Standings** tables per season with inline-editable positions, points, and win counts in Django Admin.
+  - **Power Unit (PU) Allocation Tracker** displaying 2026 component usage (`ICE`, `TC`, `EXH`, `MGU-K`, `ES`, `PU-CE`, `PU-ANC`) per driver with color-coded limit warnings/penalties and component guides.
 
 - **📅 Grand Prix Calendar & Sessions (`apps.grandprix_calendar`)**
   - Multi-season support with active season tracking (`is_current`).
@@ -182,6 +183,7 @@ docker compose -f compose.yaml -f compose.prod.yaml up -d --build
 | `/racing/drivers/<code>/` | `racing:driver_detail` | Driver profile by 3-letter code (e.g., `/racing/drivers/VER/`) |
 | `/racing/teams/` | `racing:teams_list` | Constructor teams directory |
 | `/racing/teams/<pk>/` | `racing:team_detail` | Constructor profile, car livery, driver lineup, and related news |
+| `/racing/power-units/` | `racing:pu_components` | Power Unit (PU) component usage table per driver with limit status colors and component descriptions |
 | `/calendar/` | `grandprix_calendar:calendar_list` | Full season Grand Prix calendar |
 | `/calendar/round-<n>/` | `grandprix_calendar:grandprix_detail` | Grand Prix weekend circuit specs and session timetable |
 | `/sitemap.xml` | `django.contrib.sitemaps` | Dynamic SEO sitemap for search engines |

@@ -54,6 +54,7 @@ class SessionAdminForm(UTCSessionBaseForm):
     f1_official_url = forms.URLField(
         required=False,
         label="روش اول: ایمپورت از لینک Formula1.com",
+        assume_scheme="https",
         help_text="لینک صفحه نتیجه این سشن در سایت رسمی formula1.com را وارد کرده و ذخیره را بزنید.",
         widget=forms.URLInput(attrs={"placeholder": "https://www.formula1.com/en/results/2026/races/..."}),
     )

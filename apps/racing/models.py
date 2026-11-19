@@ -125,3 +125,96 @@ class TeamStanding(models.Model):
 
     def __str__(self):
         return f"{self.position}. {self.team.name} ({self.points} pts) - {self.season.year}"
+
+
+class PowerUnitLimit(models.Model):
+    """سقف مجاز استفاده از قطعات PU برای هر فصل (پیش‌فرض بر اساس قوانین ۲۰۲۶)."""
+
+    season = models.OneToOneField(
+        'grandprix_calendar.Season',
+        on_delete=models.CASCADE,
+        related_name='pu_limit',
+        verbose_name="فصل",
+    )
+    ice_limit = models.PositiveSmallIntegerField(default=4, verbose_name="سقف مجاز ICE")
+    tc_limit = models.PositiveSmallIntegerField(default=4, verbose_name="سقف مجاز TC")
+    exh_limit = models.PositiveSmallIntegerField(default=4, verbose_name="سقف مجاز EXH")
+    mguk_limit = models.PositiveSmallIntegerField(default=3, verbose_name="سقف مجاز MGU-K")
+    es_limit = models.PositiveSmallIntegerField(default=3, verbose_name="سقف مجاز ES")
+    pu_ce_limit = models.PositiveSmallIntegerField(default=3, verbose_name="سقف مجاز PU-CE")
+    pu_anc_limit = models.PositiveSmallIntegerField(default=6, verbose_name="سقف مجاز PU-ANC")
+
+    class Meta:
+        verbose_name = "سقف مجاز قطعات PU"
+        verbose_name_plural = "سقف‌های مجاز قطعات PU"
+        ordering = ['-season__year']
+
+    def __str__(self):
+        return f"سقف مجاز قطعات PU فصل {self.season.year}"
+
+
+class DriverPowerUnitUsage(models.Model):
+    """تعداد قطعات PU استفاده‌شده توسط هر راننده در یک فصل."""
+
+    season = models.ForeignKey(
+        'grandprix_calendar.Season',
+        on_delete=models.CASCADE,
+        related_name='pu_usages',
+        verbose_name="فصل",
+    )
+    driver = models.ForeignKey(
+        Driver,
+        on_delete=models.CASCADE,
+        related_name='pu_usages',
+        verbose_name="راننده",
+    )
+    ice = models.PositiveSmallIntegerField(default=0, verbose_name="ICE")
+    tc = models.PositiveSmallIntegerField(default=0, verbose_name="TC")
+    exh = models.PositiveSmallIntegerField(default=0, verbose_name="EXH")
+    mguk = models.PositiveSmallIntegerField(default=0, verbose_name="MGU-K")
+    es = models.PositiveSmallIntegerField(default=0, verbose_name="ES")
+    pu_ce = models.PositiveSmallIntegerField(default=0, verbose_name="PU-CE")
+    pu_anc = models.PositiveSmallIntegerField(default=0, verbose_name="PU-ANC")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخرین بروزرسانی")
+
+    class Meta:
+        verbose_name = "مصرف قطعات PU راننده"
+        verbose_name_plural = "جدول قطعات PU رانندگان"
+        unique_together = ('season', 'driver')
+        ordering = ['driver__team__name', 'driver__permanent_number']
+
+    def __str__(self):
+        return f"{self.driver.full_name} - فصل {self.season.year}"
+
+
+class PowerUnitComponentInfo(models.Model):
+    """توضیح وظیفه هر یک از قطعات پیشرانه برای نمایش در زیر جدول."""
+
+    COMPONENT_CHOICES = [
+        ('ICE', 'ICE'),
+        ('TC', 'TC'),
+        ('EXH', 'EXH'),
+        ('MGU-K', 'MGU-K'),
+        ('ES', 'ES'),
+        ('PU-CE', 'PU-CE'),
+        ('PU-ANC', 'PU-ANC'),
+    ]
+
+    code = models.CharField(
+        max_length=10,
+        choices=COMPONENT_CHOICES,
+        unique=True,
+        verbose_name="کد قطعه",
+    )
+    english_name = models.CharField(max_length=120, verbose_name="نام کامل انگلیسی")
+    persian_name = models.CharField(max_length=120, verbose_name="نام فارسی")
+    description = models.TextField(verbose_name="وظیفه و توضیحات قطعه")
+    display_order = models.PositiveSmallIntegerField(default=1, verbose_name="ترتیب نمایش")
+
+    class Meta:
+        verbose_name = "معرفی قطعه PU"
+        verbose_name_plural = "معرفی و وظایف قطعات PU"
+        ordering = ['display_order', 'code']
+
+    def __str__(self):
+        return f"{self.code} — {self.persian_name}"

@@ -364,6 +364,21 @@ UNFOLD = {
                         "icon": "emoji_events",
                         "link": reverse_lazy("admin:racing_teamstanding_changelist"),
                     },
+                    {
+                        "title": "قطعات PU رانندگان",
+                        "icon": "precision_manufacturing",
+                        "link": reverse_lazy("admin:racing_driverpowerunitusage_changelist"),
+                    },
+                    {
+                        "title": "سقف مجاز قطعات PU",
+                        "icon": "tune",
+                        "link": reverse_lazy("admin:racing_powerunitlimit_changelist"),
+                    },
+                    {
+                        "title": "توضیحات قطعات PU",
+                        "icon": "info",
+                        "link": reverse_lazy("admin:racing_powerunitcomponentinfo_changelist"),
+                    },
                 ],
             },
             {

@@ -10,6 +10,7 @@
 - Provide public profile pages for every Driver (`/racing/drivers/<code>/`) and Constructor Team (`/racing/teams/<pk>/`), complete with rich-text biographies, car liveries, teammate comparisons, and tagged news articles from `apps.news`.
 - Track and display **Driver Championship** and **Constructor Championship** standings (`/racing/standings/`) per season.
 - Provide fast, inline-editable standings tables in Django Admin so editors can update points, positions, and wins immediately after each race weekend.
+- Track per-season **Power Unit (PU) component allocations** (`/racing/power-units/`) for each driver across 2026 FIA components (`ICE`, `TC`, `EXH`, `MGU-K`, `ES`, `PU-CE`, `PU-ANC`) with threshold-based visual status (white/orange/red) and technical descriptions below the table.
 
 ---
 
@@ -94,6 +95,46 @@ Stores a constructor team's championship standing for a specific `Season`.
 
 - **Constraints & Ordering:** `unique_together = ('season', 'team')`, `ordering = ['position', '-points']`.
 
+### `PowerUnitLimit`
+Defines the allowed season quota for each Power Unit component per `Season` (defaults match 2026 FIA regulations).
+
+| Field | Type | Constraints / Options | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `BigAutoField` | Primary Key | Auto-generated ID |
+| `season` | `OneToOneField('grandprix_calendar.Season')` | `on_delete=CASCADE`, `related_name='pu_limit'` | Championship season |
+| `ice_limit` | `PositiveSmallIntegerField` | Default `4` | Allowed Internal Combustion Engines (`ICE`) |
+| `tc_limit` | `PositiveSmallIntegerField` | Default `4` | Allowed Turbochargers (`TC`) |
+| `exh_limit` | `PositiveSmallIntegerField` | Default `4` | Allowed Exhaust Systems (`EXH`) |
+| `mguk_limit` | `PositiveSmallIntegerField` | Default `3` | Allowed `MGU-K` units |
+| `es_limit` | `PositiveSmallIntegerField` | Default `3` | Allowed Energy Stores (`ES`) |
+| `pu_ce_limit` | `PositiveSmallIntegerField` | Default `3` | Allowed Power Unit Control Electronics (`PU-CE`) |
+| `pu_anc_limit` | `PositiveSmallIntegerField` | Default `6` | Allowed Power Unit Ancillary Components (`PU-ANC`) |
+
+### `DriverPowerUnitUsage`
+Tracks how many units of each PU component a `Driver` has used in a given `Season`.
+
+| Field | Type | Constraints / Options | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `BigAutoField` | Primary Key | Auto-generated ID |
+| `season` | `ForeignKey('grandprix_calendar.Season')` | `on_delete=CASCADE`, `related_name='pu_usages'` | Championship season |
+| `driver` | `ForeignKey(Driver)` | `on_delete=CASCADE`, `related_name='pu_usages'` | Driver |
+| `ice`, `tc`, `exh`, `mguk`, `es`, `pu_ce`, `pu_anc` | `PositiveSmallIntegerField` | Default `0` | Used count for each PU element |
+| `updated_at` | `DateTimeField` | `auto_now=True` | Last modification timestamp |
+
+- **Constraints & Ordering:** `unique_together = ('season', 'driver')`, `ordering = ['driver__team__name', 'driver__permanent_number']`.
+
+### `PowerUnitComponentInfo`
+Stores editable Persian/English names and functional descriptions for each PU component rendered beneath the allocation table.
+
+| Field | Type | Constraints / Options | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `BigAutoField` | Primary Key | Auto-generated ID |
+| `code` | `CharField(max_length=10)` | `unique=True`, Choices: `ICE`, `TC`, `EXH`, `MGU-K`, `ES`, `PU-CE`, `PU-ANC` | Component code |
+| `english_name` | `CharField(max_length=120)` | Required | Full English component name |
+| `persian_name` | `CharField(max_length=120)` | Required | Persian component name |
+| `description` | `TextField` | Required | Component role and technical explanation |
+| `display_order` | `PositiveSmallIntegerField` | Default `1` | Card display order |
+
 ---
 
 ## 3. File-by-File Architecture
@@ -136,6 +177,14 @@ Stores a constructor team's championship standing for a specific `Season`.
 - Fetches `team_standings` with `select_related('team').order_by('position')`.
 - Renders [`templates/racing/standings.html`](../../templates/racing/standings.html) with tabbed/dual tables for Drivers and Constructors.
 
+### `pu_components_view(request)`
+- Resolves the target season via optional `?season=<year>` query parameter, falling back to `current_season`.
+- Loads season limits from `PowerUnitLimit` (falling back to 2026 defaults) and driver usages via `DriverPowerUnitUsage.objects.filter(season=current_season).select_related('driver', 'driver__team')`.
+- Orders drivers by constructor and driver championship positions using `Subquery`/`OuterRef` annotations to avoid N+1 queries.
+- Computes per-cell status via `_get_pu_cell_meta(used, limit)`: `used < limit` (`text-white`), `used == limit` (`text-orange-400`), `used > limit` (`text-red-500`).
+- Loads component descriptions from `PowerUnitComponentInfo` with built-in Persian fallbacks (`DEFAULT_PU_DESCRIPTIONS`).
+- Renders [`templates/racing/pu_components.html`](../../templates/racing/pu_components.html).
+
 ---
 
 ## 5. URLs & Templates
@@ -149,6 +198,7 @@ Namespace: `racing` (mounted under `/racing/` in `config/urls.py`).
 | `/racing/drivers/<str:code>/` | `racing:driver_detail` | `driver_detail_view` | [`templates/racing/driver_detail.html`](../../templates/racing/driver_detail.html) |
 | `/racing/teams/` | `racing:teams_list` | `teams_list_view` | [`templates/racing/teams_list.html`](../../templates/racing/teams_list.html) |
 | `/racing/teams/<int:pk>/` | `racing:team_detail` | `team_detail_view` | [`templates/racing/team_detail.html`](../../templates/racing/team_detail.html) |
+| `/racing/power-units/` | `racing:pu_components` | `pu_components_view` | [`templates/racing/pu_components.html`](../../templates/racing/pu_components.html) |
 
 ---
 
@@ -160,6 +210,9 @@ Namespace: `racing` (mounted under `/racing/` in `config/urls.py`).
 - **`DriverStandingAdmin` & `TeamStandingAdmin`:**
   - `list_editable = ('position', 'points', 'wins')` allows bulk-updating standings directly in the changelist view.
   - Filtered by `season` and ordered by `('season', 'position')`.
+- **`PowerUnitLimitAdmin`:** Manages per-season quotas and provides the `generate_driver_pu_rows` bulk admin action to initialize `DriverPowerUnitUsage` rows for all main drivers.
+- **`DriverPowerUnitUsageAdmin`:** Inline-editable (`list_editable = ('ice', 'tc', 'exh', 'mguk', 'es', 'pu_ce', 'pu_anc')`) with team and power unit columns and `list_select_related` optimization.
+- **`PowerUnitComponentInfoAdmin`:** Manages the PU component descriptions shown below the table with inline `display_order`.
 
 ---
 

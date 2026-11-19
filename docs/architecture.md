@@ -158,6 +158,9 @@ erDiagram
     DRIVER ||--o{ DRIVER_STANDING : "standings (CASCADE)"
     SEASON ||--o{ TEAM_STANDING : "team_standings (CASCADE)"
     TEAM ||--o{ TEAM_STANDING : "standings (CASCADE)"
+    SEASON ||--o| POWER_UNIT_LIMIT : "pu_limit (CASCADE)"
+    SEASON ||--o{ DRIVER_POWER_UNIT_USAGE : "pu_usages (CASCADE)"
+    DRIVER ||--o{ DRIVER_POWER_UNIT_USAGE : "pu_usages (CASCADE)"
     SESSION ||--o{ SESSION_RESULT : "results (CASCADE)"
     DRIVER ||--o{ SESSION_RESULT : "session_results (CASCADE)"
     TEAM ||--o{ SESSION_RESULT : "session_results (CASCADE)"
@@ -270,6 +273,38 @@ erDiagram
         varchar q3_time
         decimal points
         boolean fastest_lap
+    }
+    POWER_UNIT_LIMIT {
+        bigint id PK
+        bigint season_id FK
+        smallint ice_limit
+        smallint tc_limit
+        smallint exh_limit
+        smallint mguk_limit
+        smallint es_limit
+        smallint pu_ce_limit
+        smallint pu_anc_limit
+    }
+    DRIVER_POWER_UNIT_USAGE {
+        bigint id PK
+        bigint season_id FK
+        bigint driver_id FK
+        smallint ice
+        smallint tc
+        smallint exh
+        smallint mguk
+        smallint es
+        smallint pu_ce
+        smallint pu_anc
+        datetime updated_at
+    }
+    POWER_UNIT_COMPONENT_INFO {
+        bigint id PK
+        varchar code UK
+        varchar english_name
+        varchar persian_name
+        text description
+        smallint display_order
     }
 ```
 

@@ -37,12 +37,13 @@
 
                 <!-- منوی دسکتاپ -->
                 <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-300">
-                    <a href="{% url 'news:home' %}" class="hover:text-red-500 transition">صفحه اصلی</a>
-                    <a href="{% url 'news:articles_list' %}" class="hover:text-red-500 transition">اخبار</a>
-                    <a href="{% url 'racing:standings' %}" class="hover:text-red-500 transition">جدول رده‌بندی</a>
-                    <a href="{% url 'grandprix_calendar:calendar_list' %}" class="hover:text-red-500 transition">تقویم مسابقات</a>
-                    <a href="{% url 'racing:drivers_list' %}" class="hover:text-red-500 transition">رانندگان</a>
-                    <a href="{% url 'racing:teams_list' %}" class="hover:text-red-500 transition">تیم‌ها</a>
+                    <a href="{% url 'news:home' %}" class="{% if request.resolver_match.url_name == 'home' %}text-red-500 font-bold{% else %}text-zinc-300 hover:text-white{% endif %} transition text-sm">صفحه اصلی</a>
+                    <a href="{% url 'news:articles_list' %}" class="{% if request.resolver_match.url_name == 'articles_list' %}text-red-500 font-bold{% else %}text-zinc-300 hover:text-white{% endif %} transition text-sm">اخبار</a>
+                    <a href="{% url 'racing:standings' %}" class="{% if request.resolver_match.url_name == 'standings' %}text-red-500 font-bold{% else %}text-zinc-300 hover:text-white{% endif %} transition text-sm">جدول رده‌بندی</a>
+                    <a href="{% url 'grandprix_calendar:calendar_list' %}" class="{% if request.resolver_match.url_name == 'calendar_list' %}text-red-500 font-bold{% else %}text-zinc-300 hover:text-white{% endif %} transition text-sm">تقویم مسابقات</a>
+                    <a href="{% url 'racing:drivers_list' %}" class="{% if request.resolver_match.url_name == 'drivers_list' %}text-red-500 font-bold{% else %}text-zinc-300 hover:text-white{% endif %} transition text-sm">رانندگان</a>
+                    <a href="{% url 'racing:teams_list' %}" class="{% if request.resolver_match.url_name == 'teams_list' %}text-red-500 font-bold{% else %}text-zinc-300 hover:text-white{% endif %} transition text-sm">تیم‌ها</a>
+                    <a href="{% url 'racing:pu_components' %}" class="{% if request.resolver_match.url_name == 'pu_components' %}text-red-500 font-bold{% else %}text-zinc-300 hover:text-white{% endif %} transition text-sm">قطعات PU</a>
                 </nav>
             </div>
             <!-- فیلد جستجوی سراسری در هدر (مخصوص دسکتاپ) -->
@@ -93,29 +94,26 @@
 
             <!-- آیتم‌های منو در موبایل -->
             <nav class="flex flex-col gap-2 mt-5 text-sm font-semibold">
-                <a href="{% url 'news:home' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
-                    <span>🏠</span>
-                    <span>صفحه اصلی</span>
+                <a href="{% url 'news:home' %}" class="block px-4 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'home' %}bg-red-600/15 text-red-500 font-bold{% else %}text-zinc-300 hover:bg-zinc-800 hover:text-white{% endif %} transition text-sm">
+                    صفحه اصلی
                 </a>
-                <a href="{% url 'news:articles_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
-                    <span>📰</span>
-                    <span>اخبار و مقالات</span>
+                <a href="{% url 'news:articles_list' %}" class="block px-4 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'articles_list' %}bg-red-600/15 text-red-500 font-bold{% else %}text-zinc-300 hover:bg-zinc-800 hover:text-white{% endif %} transition text-sm">
+                    اخبار و مقالات
                 </a>
-                <a href="{% url 'racing:standings' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
-                    <span>🏆</span>
-                    <span>جدول رده‌بندی</span>
+                <a href="{% url 'racing:standings' %}" class="block px-4 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'standings' %}bg-red-600/15 text-red-500 font-bold{% else %}text-zinc-300 hover:bg-zinc-800 hover:text-white{% endif %} transition text-sm">
+                    جدول رده‌بندی
                 </a>
-                <a href="{% url 'grandprix_calendar:calendar_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
-                    <span>📅</span>
-                    <span>تقویم مسابقات</span>
+                <a href="{% url 'grandprix_calendar:calendar_list' %}" class="block px-4 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'calendar_list' %}bg-red-600/15 text-red-500 font-bold{% else %}text-zinc-300 hover:bg-zinc-800 hover:text-white{% endif %} transition text-sm">
+                    تقویم مسابقات
                 </a>
-                <a href="{% url 'racing:drivers_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
-                    <span>🏎️</span>
-                    <span>رانندگان</span>
+                <a href="{% url 'racing:drivers_list' %}" class="block px-4 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'drivers_list' %}bg-red-600/15 text-red-500 font-bold{% else %}text-zinc-300 hover:bg-zinc-800 hover:text-white{% endif %} transition text-sm">
+                    رانندگان
                 </a>
-                <a href="{% url 'racing:teams_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition">
-                    <span>🏁</span>
-                    <span>تیم‌ها</span>
+                <a href="{% url 'racing:teams_list' %}" class="block px-4 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'teams_list' %}bg-red-600/15 text-red-500 font-bold{% else %}text-zinc-300 hover:bg-zinc-800 hover:text-white{% endif %} transition text-sm">
+                    تیم‌ها
+                </a>
+                <a href="{% url 'racing:pu_components' %}" class="block px-4 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'pu_components' %}bg-red-600/15 text-red-500 font-bold{% else %}text-zinc-300 hover:bg-zinc-800 hover:text-white{% endif %} transition text-sm">
+                    قطعات PU
                 </a>
             </nav>
         </div>

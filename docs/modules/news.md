@@ -106,7 +106,7 @@ Mounted at `/sitemap.xml` in `config/urls.py`:
 | Sitemap Class | Key | Priority | Changefreq | Queryset / Items |
 | :--- | :--- | :--- | :--- | :--- |
 | `ArticleSitemap` | `'articles'` | `0.9` | `daily` | `Article.objects.filter(status='published').order_by('-created_at')` (uses `updated_at` for `lastmod`) |
-| `StaticViewSitemap` | `'static'` | `0.8` | `weekly` | `'news:home'`, `'news:articles_list'`, `'racing:standings'`, `'grandprix_calendar:calendar_list'`, `'racing:drivers_list'`, `'racing:teams_list'` |
+| `StaticViewSitemap` | `'static'` | `0.8` | `weekly` | `'news:home'`, `'news:articles_list'`, `'racing:standings'`, `'racing:pu_components'`, `'grandprix_calendar:calendar_list'`, `'racing:drivers_list'`, `'racing:teams_list'` |
 | `DriverSitemap` | `'drivers'` | `0.7` | `weekly` | `Driver.objects.all().order_by('permanent_number')` |
 | `TeamSitemap` | `'teams'` | `0.6` | `monthly` | `Team.objects.all().order_by('name')` |
 

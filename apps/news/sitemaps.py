@@ -28,6 +28,7 @@ class StaticViewSitemap(Sitemap):
             'news:home',
             'news:articles_list',
             'racing:standings',
+            'racing:pu_components',
             'grandprix_calendar:calendar_list',
             'racing:drivers_list',
             'racing:teams_list',
